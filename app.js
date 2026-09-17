@@ -19,8 +19,24 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+    
+function imageUrl(url) {
+  const value = String(url || "").trim();
+  if (!value) return "";
+
+  const match = value.match(
+    /drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([^/&?]+)/
+  );
+
+  if (match) {
+    return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+  }
+
+  return value;
+}
 
 function render() {
+
   const catalog = document.getElementById("catalog");
   catalog.innerHTML = "";
 
@@ -42,7 +58,7 @@ function render() {
       const d = document.createElement("div");
       d.className = "product";
       const q = cart[p.id] || 0;
-      const photo = p.photo ? `<img src="${escapeHtml(p.photo)}" alt="" class="product-photo">` : "";
+      const photo = p.photo ? `<img src="$escapeHtml(imageUrl(p.photo))}" alt="" class="product-photo">` : "";
       const description = p.description ? `<div class="description">${escapeHtml(p.description)}</div>` : "";
 
       d.innerHTML = `
