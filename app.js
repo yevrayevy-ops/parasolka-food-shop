@@ -27,7 +27,7 @@ function imageUrl(url) {
   const match = value.match(/drive\.google\.com\/file\/d\/([^/]+)/);
 
   if (match) {
-    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    return `https://lh3.googleusercontent.com/d/${match[1]}`;
   }
 
   return value;
