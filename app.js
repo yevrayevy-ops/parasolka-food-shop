@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYQVdbUFT4575C8F6OeKP57lNxbeDLIZvGBTq5iOqknIYDlUynNDzx2bxniE6gFlaUzg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDTiMuxoupoXolPv9-y58dfOqtgls5sRKUHlNNBWeBQwSe8GXsHWUE-S13ZW2J5BrbZg/exec";
 
 const tg = window.Telegram?.WebApp;
 if (tg) {
