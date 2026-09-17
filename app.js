@@ -24,12 +24,10 @@ function imageUrl(url) {
   const value = String(url || "").trim();
   if (!value) return "";
 
-  const match = value.match(
-    /drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([^/&?]+)/
-  );
+  const match = value.match(/drive\.google\.com\/file\/d\/([^/]+)/);
 
   if (match) {
-    return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
   }
 
   return value;
