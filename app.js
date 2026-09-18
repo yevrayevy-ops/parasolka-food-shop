@@ -93,7 +93,7 @@ function renderCart() {
     : "Корзина пока пуста";
 
   const total = selected.reduce((s, p) => s + p.price * cart[p.id], 0);
-  document.getElementById("total").textContent = money(total);
+ document.getElementById("total").innerHTML = `${money(total)}<div style="font-size:14px;font-weight:normal;margin-top:6px;">20% (${money(total * 0.2)}) будет использовано для работы проекта Parasolka</div>`;
   document.getElementById("checkout").disabled = total === 0;
 }
 
