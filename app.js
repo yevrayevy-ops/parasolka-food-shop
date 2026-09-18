@@ -56,7 +56,7 @@ function render() {
       const d = document.createElement("div");
       d.className = "product";
       const q = cart[p.id] || 0;
-      const photo = p.photo ? `<img src="$escapeHtml(imageUrl(p.photo))}" alt="" class="product-photo">` : "";
+      const photo = `<img src="https://picsum.photos/500/300" class="product-photo">`;
       const description = p.description ? `<div class="description">${escapeHtml(p.description)}</div>` : "";
 
       d.innerHTML = `
