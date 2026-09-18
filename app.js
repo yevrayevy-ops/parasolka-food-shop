@@ -44,7 +44,7 @@ function render() {
     return;
   }
 
-  const groups = [...new Set(products.map(p => p.category || "Другое"))];
+  const groups = [...new Set(products.filter(p => p.available).map(p => p.category || "Другое"))];
 
   groups.forEach(cat => {
     const title = document.createElement("h2");
@@ -52,7 +52,7 @@ function render() {
     title.style.margin = "18px 12px 8px";
     catalog.appendChild(title);
 
-    products.filter(p => (p.category || "Другое") === cat).forEach(p => {
+  products.filter(p => p.available && (p.category || "Другое") === cat).forEach(p => {
       const d = document.createElement("div");
       d.className = "product";
       const q = cart[p.id] || 0;
