@@ -32,17 +32,11 @@ function render() {
 
   const groups = [...new Set(products.map(p => p.category || "Другое"))];
 
-  groups.forEach((cat, index) => {
-    const details = document.createElement("details");
-    details.className = "category";
-    if (index === 0) details.open = true;
-
-    const summary = document.createElement("summary");
-    summary.textContent = cat;
-    details.appendChild(summary);
-
-    const productsWrap = document.createElement("div");
-    productsWrap.className = "category-products";
+  groups.forEach(cat => {
+    const title = document.createElement("h2");
+    title.textContent = cat;
+    title.style.margin = "18px 12px 8px";
+    catalog.appendChild(title);
 
     products.filter(p => (p.category || "Другое") === cat).forEach(p => {
       const d = document.createElement("div");
@@ -61,11 +55,8 @@ function render() {
           <span class="qty">${q}</span>
           <button ${!p.available ? "disabled" : ""} onclick="change(${JSON.stringify(p.id)},1)">+</button>
         </div>`;
-      productsWrap.appendChild(d);
+      catalog.appendChild(d);
     });
-
-    details.appendChild(productsWrap);
-    catalog.appendChild(details);
   });
 
   renderCart();

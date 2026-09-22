@@ -2,33 +2,3 @@
 .loading { padding: 30px 16px; text-align: center; opacity: .75; }
 .description { margin: 5px 0 8px; opacity: .75; font-size: 14px; }
 .product-photo { width: 100%; max-height: 220px; object-fit: contain; border-radius: 10px; margin-bottom: 8px; }
-
-
-/* Раскрывающиеся категории */
-.category {
-  margin: 12px;
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--tg-theme-secondary-bg-color,#fff);
-}
-.category summary {
-  cursor: pointer;
-  list-style: none;
-  padding: 15px 16px;
-  font-size: 18px;
-  font-weight: 700;
-  user-select: none;
-}
-.category summary::-webkit-details-marker { display: none; }
-.category summary::after {
-  content: "▶";
-  float: right;
-  font-size: 13px;
-  opacity: .65;
-  transition: transform .15s ease;
-}
-.category[open] summary::after {
-  transform: rotate(90deg);
-}
-.category-products { padding-bottom: 2px; }
-.category-products .product { margin: 10px 0; border-radius: 0; }
