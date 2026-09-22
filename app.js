@@ -8,7 +8,6 @@ if (tg) {
 
 let products = [];
 const cart = {};
-const openCategories = new Set();
 
 const money = n => Number(n || 0).toLocaleString("ru-RU") + " Ft";
 
@@ -33,28 +32,17 @@ function render() {
 
   const groups = [...new Set(products.map(p => p.category || "Другое"))];
 
-  // Открываем первую категорию по умолчанию. Состояние остальных сохраняется.
-  if (openCategories.size === 0 && groups.length) openCategories.add(groups[0]);
+  groups.forEach((cat, index) => {
+    const section = document.createElement("details");
+    section.className = "category";
+    if (index === 0) section.open = true;
 
-  groups.forEach(cat => {
-    const isOpen = openCategories.has(cat);
-    const section = document.createElement("section");
-    section.className = "category" + (isOpen ? " open" : "");
-
-    const title = document.createElement("button");
-    title.type = "button";
-    title.className = "category-header";
-    title.setAttribute("aria-expanded", String(isOpen));
-    title.innerHTML = `<span>${escapeHtml(cat)}</span><span class="category-arrow">${isOpen ? "▼" : "▶"}</span>`;
+    const title = document.createElement("summary");
+    title.textContent = cat;
+    section.appendChild(title);
 
     const items = document.createElement("div");
     items.className = "category-items";
-
-    title.onclick = () => {
-      if (openCategories.has(cat)) openCategories.delete(cat);
-      else openCategories.add(cat);
-      render();
-    };
 
     products.filter(p => (p.category || "Другое") === cat).forEach(p => {
       const d = document.createElement("div");
@@ -76,7 +64,6 @@ function render() {
       items.appendChild(d);
     });
 
-    section.appendChild(title);
     section.appendChild(items);
     catalog.appendChild(section);
   });
