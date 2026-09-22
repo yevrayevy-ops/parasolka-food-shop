@@ -94,9 +94,18 @@ function renderCart() {
     ? selected.map(p => `<div class="cartrow"><span>${escapeHtml(p.name)} × ${cart[p.id]}</span><span>${money(p.price * cart[p.id])}</span></div>`).join("")
     : "Корзина пока пуста";
 
-  const total = selected.reduce((s, p) => s + p.price * cart[p.id], 0);
-  document.getElementById("total").textContent = money(total);
-  document.getElementById("checkout").disabled = total === 0;
+  const subtotal = selected.reduce((s, p) => s + p.price * cart[p.id], 0);
+  const onlineDiscount = subtotal * 0.10;
+  const finalTotal = subtotal - onlineDiscount;
+  const parasolkaAmount = finalTotal * 0.20;
+
+  document.getElementById("total").innerHTML = `
+    <div class="summary-line"><span>Сумма:</span><strong>${money(subtotal)}</strong></div>
+    <div class="summary-line discount"><span>Скидка за онлайн-заказ (10%):</span><strong>−${money(onlineDiscount)}</strong></div>
+    <div class="summary-line final"><span>К оплате после скидки:</span><strong>${money(finalTotal)}</strong></div>
+    <div class="summary-line donation"><span>20% в пользу Парасольки:</span><strong>${money(parasolkaAmount)}</strong></div>
+  `;
+  document.getElementById("checkout").disabled = subtotal === 0;
 }
 
 async function loadProducts() {
@@ -163,7 +172,10 @@ document.getElementById("send").onclick = async () => {
     phone,
     comment: document.getElementById("comment").value.trim(),
     items,
-    total: items.reduce((s, p) => s + p.price * p.quantity, 0),
+    subtotal: items.reduce((s, p) => s + p.price * p.quantity, 0),
+    onlineDiscount: items.reduce((s, p) => s + p.price * p.quantity, 0) * 0.10,
+    total: items.reduce((s, p) => s + p.price * p.quantity, 0) * 0.90,
+    parasolkaAmount: items.reduce((s, p) => s + p.price * p.quantity, 0) * 0.90 * 0.20,
     telegramUser: tg?.initDataUnsafe?.user || null
   };
 
