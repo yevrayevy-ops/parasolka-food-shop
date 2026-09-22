@@ -9,7 +9,7 @@ if (tg) {
 let products = [];
 const cart = {};
 
-const money = n => Number(n || 0).toLocaleString("ru-RU") + " Ft";
+const money = n => Number(n || 0).toLocaleString("uk-UA") + " Ft";
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -31,12 +31,12 @@ function render() {
   catalog.innerHTML = "";
 
   if (!products.length) {
-    catalog.innerHTML = '<div class="loading">Загружаем товары…</div>';
+    catalog.innerHTML = '<div class="loading">Завантажуємо товари…</div>';
     renderCart();
     return;
   }
 
-  const groups = [...new Set(products.map(p => p.category || "Другое"))];
+  const groups = [...new Set(products.map(p => p.category || "Інше"))];
 
   groups.forEach((cat, index) => {
     const details = document.createElement("details");
@@ -51,7 +51,7 @@ function render() {
     const productsWrap = document.createElement("div");
     productsWrap.className = "category-products";
 
-    products.filter(p => (p.category || "Другое") === cat).forEach(p => {
+    products.filter(p => (p.category || "Інше") === cat).forEach(p => {
       const d = document.createElement("div");
       d.className = "product";
       const q = cart[p.id] || 0;
@@ -62,7 +62,7 @@ function render() {
         ${photo}
         <h3>${escapeHtml(p.name)}</h3>
         ${description}
-        <div class="price">${money(p.price)} ${!p.available ? "— нет в наличии" : ""}</div>
+        <div class="price">${money(p.price)} ${!p.available ? "— немає в наявності" : ""}</div>
         <div class="controls">
           <button ${!p.available ? "disabled" : ""} onclick="change(${JSON.stringify(p.id)},-1)">−</button>
           <span class="qty">${q}</span>
@@ -92,7 +92,7 @@ function renderCart() {
 
   el.innerHTML = selected.length
     ? selected.map(p => `<div class="cartrow"><span>${escapeHtml(p.name)} × ${cart[p.id]}</span><span>${money(p.price * cart[p.id])}</span></div>`).join("")
-    : "Корзина пока пуста";
+    : "Кошик порожній";
 
   const subtotal = selected.reduce((s, p) => s + p.price * cart[p.id], 0);
   const onlineDiscount = subtotal * 0.10;
@@ -100,17 +100,17 @@ function renderCart() {
   const parasolkaAmount = finalTotal * 0.20;
 
   document.getElementById("total").innerHTML = `
-    <div class="summary-line"><span>Сумма:</span><strong>${money(subtotal)}</strong></div>
-    <div class="summary-line discount"><span>Скидка за онлайн-заказ (10%):</span><strong>−${money(onlineDiscount)}</strong></div>
-    <div class="summary-line final"><span>К оплате после скидки:</span><strong>${money(finalTotal)}</strong></div>
-    <div class="summary-line donation"><span>20% в пользу Парасольки:</span><strong>${money(parasolkaAmount)}</strong></div>
+    <div class="summary-line"><span>Сума:</span><strong>${money(subtotal)}</strong></div>
+    <div class="summary-line discount"><span>Онлайн-знижка (10%):</span><strong>−${money(onlineDiscount)}</strong></div>
+    <div class="summary-line final"><span>До сплати після знижки:</span><strong>${money(finalTotal)}</strong></div>
+    <div class="summary-line donation"><span>20% на користь Парасольки:</span><strong>${money(parasolkaAmount)}</strong></div>
   `;
   document.getElementById("checkout").disabled = subtotal === 0;
 }
 
 async function loadProducts() {
   const catalog = document.getElementById("catalog");
-  catalog.innerHTML = '<div class="loading">Загружаем товары…</div>';
+  catalog.innerHTML = '<div class="loading">Завантажуємо товари…</div>';
 
   try {
     const response = await fetch(APPS_SCRIPT_URL, { method: "GET", cache: "no-store" });
@@ -129,8 +129,8 @@ async function loadProducts() {
     console.error(error);
     catalog.innerHTML = `
       <div class="loading">
-        Не удалось загрузить товары.<br><br>
-        Проверьте подключение к интернету и попробуйте открыть магазин ещё раз.
+        Не вдалося завантажити товари.<br><br>
+        Перевірте підключення до Інтернету та спробуйте відкрити магазин ще раз.
       </div>`;
     renderCart();
   }
@@ -149,7 +149,7 @@ document.getElementById("send").onclick = async () => {
   const phone = document.getElementById("phone").value.trim();
 
   if (!name || !phone) {
-    alert("Укажите имя и телефон");
+    alert("Вкажіть ім’я та телефон");
     return;
   }
 
@@ -163,7 +163,7 @@ document.getElementById("send").onclick = async () => {
     }));
 
   if (!items.length) {
-    alert("Корзина пуста");
+    alert("Кошик порожній");
     return;
   }
 
@@ -181,7 +181,7 @@ document.getElementById("send").onclick = async () => {
 
   const sendButton = document.getElementById("send");
   sendButton.disabled = true;
-  sendButton.textContent = "Отправляем…";
+  sendButton.textContent = "Надсилаємо…";
 
   try {
     // text/plain avoids a browser CORS preflight. Apps Script reads the raw body.
@@ -196,18 +196,18 @@ document.getElementById("send").onclick = async () => {
     Object.keys(cart).forEach(k => delete cart[k]);
     render();
 
-    alert("Заказ отправлен! Мы свяжемся с вами для подтверждения.");
+    alert("Замовлення надіслано! Ми зв’яжемося з вами для підтвердження.");
   } catch (error) {
     console.error(error);
-    alert("Не удалось отправить заказ. Попробуйте ещё раз.");
+    alert("Не вдалося надіслати замовлення. Спробуйте ще раз.");
   } finally {
     sendButton.disabled = false;
-    sendButton.textContent = "Подтвердить заказ";
+    sendButton.textContent = "Підтвердити замовлення";
   }
 };
 
 if (tg?.initDataUnsafe?.user) {
-  document.getElementById("user").textContent = "Здравствуйте, " + (tg.initDataUnsafe.user.first_name || "");
+  document.getElementById("user").textContent = "Вітаємо, " + (tg.initDataUnsafe.user.first_name || "");
 }
 
 loadProducts();
