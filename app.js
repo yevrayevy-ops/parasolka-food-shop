@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXBCsirH7pbFo-bLF0c-OzPb0SNS7BTNaexePNlFf8-sbayo_eWPiOyjPS-CvwJoXUPA/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYQVdbUFT4575C8F6OeKP57lNxbeDLIZvGBTq5iOqknIYDlUynNDzx2bxniE6gFlaUzg/exec";
 
 const tg = window.Telegram?.WebApp;
 if (tg) {
@@ -32,11 +32,17 @@ function render() {
 
   const groups = [...new Set(products.map(p => p.category || "Другое"))];
 
-  groups.forEach(cat => {
-    const title = document.createElement("h2");
-    title.textContent = cat;
-    title.style.margin = "18px 12px 8px";
-    catalog.appendChild(title);
+  groups.forEach((cat, index) => {
+    const details = document.createElement("details");
+    details.className = "category";
+    if (index === 0) details.open = true;
+
+    const summary = document.createElement("summary");
+    summary.textContent = cat;
+    details.appendChild(summary);
+
+    const productsWrap = document.createElement("div");
+    productsWrap.className = "category-products";
 
     products.filter(p => (p.category || "Другое") === cat).forEach(p => {
       const d = document.createElement("div");
@@ -55,8 +61,11 @@ function render() {
           <span class="qty">${q}</span>
           <button ${!p.available ? "disabled" : ""} onclick="change(${JSON.stringify(p.id)},1)">+</button>
         </div>`;
-      catalog.appendChild(d);
+      productsWrap.appendChild(d);
     });
+
+    details.appendChild(productsWrap);
+    catalog.appendChild(details);
   });
 
   renderCart();
