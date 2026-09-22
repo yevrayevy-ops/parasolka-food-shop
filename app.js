@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyVHhPfXR9SWugxdubgTBA0CH1LIlt6gK4A5e4L9wfueL8RSoSG89FAVjWjGbDXh1FGZg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyXBCsirH7pbFo-bLF0c-OzPb0SNS7BTNaexePNlFf8-sbayo_eWPiOyjPS-CvwJoXUPA/exec";
 
 const tg = window.Telegram?.WebApp;
 if (tg) {
@@ -22,6 +22,12 @@ function escapeHtml(value) {
 
 function render() {
   const catalog = document.getElementById("catalog");
+
+  // Remember which categories are open before rebuilding the catalog.
+  const openCategories = new Set(
+    [...catalog.querySelectorAll("details.category[open]")].map(d => d.dataset.category)
+  );
+
   catalog.innerHTML = "";
 
   if (!products.length) {
@@ -35,7 +41,8 @@ function render() {
   groups.forEach((cat, index) => {
     const details = document.createElement("details");
     details.className = "category";
-    if (index === 0) details.open = true;
+    details.dataset.category = cat;
+    details.open = openCategories.has(cat) || (openCategories.size === 0 && index === 0);
 
     const summary = document.createElement("summary");
     summary.textContent = cat;
