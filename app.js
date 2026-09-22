@@ -33,16 +33,16 @@ function render() {
   const groups = [...new Set(products.map(p => p.category || "Другое"))];
 
   groups.forEach((cat, index) => {
-    const section = document.createElement("details");
-    section.className = "category";
-    if (index === 0) section.open = true;
+    const details = document.createElement("details");
+    details.className = "category";
+    if (index === 0) details.open = true;
 
-    const title = document.createElement("summary");
-    title.textContent = cat;
-    section.appendChild(title);
+    const summary = document.createElement("summary");
+    summary.textContent = cat;
+    details.appendChild(summary);
 
-    const items = document.createElement("div");
-    items.className = "category-items";
+    const productsWrap = document.createElement("div");
+    productsWrap.className = "category-products";
 
     products.filter(p => (p.category || "Другое") === cat).forEach(p => {
       const d = document.createElement("div");
@@ -61,11 +61,11 @@ function render() {
           <span class="qty">${q}</span>
           <button ${!p.available ? "disabled" : ""} onclick="change(${JSON.stringify(p.id)},1)">+</button>
         </div>`;
-      items.appendChild(d);
+      productsWrap.appendChild(d);
     });
 
-    section.appendChild(items);
-    catalog.appendChild(section);
+    details.appendChild(productsWrap);
+    catalog.appendChild(details);
   });
 
   renderCart();

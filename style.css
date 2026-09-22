@@ -4,24 +4,31 @@
 .product-photo { width: 100%; max-height: 220px; object-fit: contain; border-radius: 10px; margin-bottom: 8px; }
 
 
+/* Раскрывающиеся категории */
 .category {
-  margin: 10px 12px;
+  margin: 12px;
   border-radius: 14px;
   overflow: hidden;
-  background: var(--tg-theme-secondary-bg-color, #fff);
+  background: var(--tg-theme-secondary-bg-color,#fff);
 }
 .category summary {
+  cursor: pointer;
+  list-style: none;
   padding: 15px 16px;
   font-size: 18px;
   font-weight: 700;
-  cursor: pointer;
-  list-style: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  user-select: none;
 }
 .category summary::-webkit-details-marker { display: none; }
-.category summary::after { content: "▶"; font-size: 13px; opacity: .7; }
-.category[open] summary::after { content: "▼"; }
-.category-items { padding: 0 0 2px; }
-.category .product { margin: 0 0 10px; border-radius: 0; padding: 14px 16px; }
+.category summary::after {
+  content: "▶";
+  float: right;
+  font-size: 13px;
+  opacity: .65;
+  transition: transform .15s ease;
+}
+.category[open] summary::after {
+  transform: rotate(90deg);
+}
+.category-products { padding-bottom: 2px; }
+.category-products .product { margin: 10px 0; border-radius: 0; }
