@@ -2,3 +2,11 @@
 .loading { padding: 30px 16px; text-align: center; opacity: .75; }
 .description { margin: 5px 0 8px; opacity: .75; font-size: 14px; }
 .product-photo { width: 100%; max-height: 220px; object-fit: contain; border-radius: 10px; margin-bottom: 8px; }
+
+.category{margin:10px 12px;border-radius:14px;overflow:hidden;background:var(--tg-theme-secondary-bg-color,#fff)}
+.category-header{width:100%;display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border:0;background:var(--tg-theme-secondary-bg-color,#fff);color:inherit;font-size:18px;font-weight:700;text-align:left;cursor:pointer}
+.category-header:active{opacity:.75}
+.category-arrow{font-size:14px;opacity:.7;margin-left:12px}
+.category-items{display:none;padding:0 0 2px}
+.category.open .category-items{display:block}
+.category .product{margin:0 0 10px;border-radius:0;padding:14px 16px}

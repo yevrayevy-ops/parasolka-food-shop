@@ -17,4 +17,4 @@ G Описание
 Orders sheet should have these 11 columns:
 № заказа | Дата | Клиент | Телефон | Telegram | Товар | Кол-во | Цена | Сумма | Комментарий | Статус
 
-Deploy the contents of this folder to Vercel. The Telegram BotFather Menu Button should continue to use the Vercel URL. .
+Deploy the contents of this folder to Vercel. The Telegram BotFather Menu Button should continue to use the Vercel URL.

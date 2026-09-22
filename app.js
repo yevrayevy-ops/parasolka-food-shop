@@ -1,4 +1,4 @@
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzDTiMuxoupoXolPv9-y58dfOqtgls5sRKUHlNNBWeBQwSe8GXsHWUE-S13ZW2J5BrbZg/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwYQVdbUFT4575C8F6OeKP57lNxbeDLIZvGBTq5iOqknIYDlUynNDzx2bxniE6gFlaUzg/exec";
 
 const tg = window.Telegram?.WebApp;
 if (tg) {
@@ -8,6 +8,7 @@ if (tg) {
 
 let products = [];
 const cart = {};
+const openCategories = new Set();
 
 const money = n => Number(n || 0).toLocaleString("ru-RU") + " Ft";
 
@@ -19,22 +20,8 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
-    
-function imageUrl(url) {
-  const value = String(url || "").trim();
-  if (!value) return "";
-
-  const match = value.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-
-  if (match) {
-    return `https://lh3.googleusercontent.com/d/${match[1]}`;
-  }
-
-  return value;
-}
 
 function render() {
-
   const catalog = document.getElementById("catalog");
   catalog.innerHTML = "";
 
@@ -44,19 +31,36 @@ function render() {
     return;
   }
 
-  const groups = [...new Set(products.filter(p => p.available).map(p => p.category || "Другое"))];
+  const groups = [...new Set(products.map(p => p.category || "Другое"))];
+
+  // Открываем первую категорию по умолчанию. Состояние остальных сохраняется.
+  if (openCategories.size === 0 && groups.length) openCategories.add(groups[0]);
 
   groups.forEach(cat => {
-    const title = document.createElement("h2");
-    title.textContent = cat;
-    title.style.margin = "18px 12px 8px";
-    catalog.appendChild(title);
+    const isOpen = openCategories.has(cat);
+    const section = document.createElement("section");
+    section.className = "category" + (isOpen ? " open" : "");
 
-  products.filter(p => p.available && (p.category || "Другое") === cat).forEach(p => {
+    const title = document.createElement("button");
+    title.type = "button";
+    title.className = "category-header";
+    title.setAttribute("aria-expanded", String(isOpen));
+    title.innerHTML = `<span>${escapeHtml(cat)}</span><span class="category-arrow">${isOpen ? "▼" : "▶"}</span>`;
+
+    const items = document.createElement("div");
+    items.className = "category-items";
+
+    title.onclick = () => {
+      if (openCategories.has(cat)) openCategories.delete(cat);
+      else openCategories.add(cat);
+      render();
+    };
+
+    products.filter(p => (p.category || "Другое") === cat).forEach(p => {
       const d = document.createElement("div");
       d.className = "product";
       const q = cart[p.id] || 0;
-     const photo = p.photo ? `<img src="${escapeHtml(imageUrl(p.photo))}" alt="" class="product-photo">` : "";
+      const photo = p.photo ? `<img src="${escapeHtml(p.photo)}" alt="" class="product-photo">` : "";
       const description = p.description ? `<div class="description">${escapeHtml(p.description)}</div>` : "";
 
       d.innerHTML = `
@@ -69,8 +73,12 @@ function render() {
           <span class="qty">${q}</span>
           <button ${!p.available ? "disabled" : ""} onclick="change(${JSON.stringify(p.id)},1)">+</button>
         </div>`;
-      catalog.appendChild(d);
+      items.appendChild(d);
     });
+
+    section.appendChild(title);
+    section.appendChild(items);
+    catalog.appendChild(section);
   });
 
   renderCart();
@@ -93,7 +101,7 @@ function renderCart() {
     : "Корзина пока пуста";
 
   const total = selected.reduce((s, p) => s + p.price * cart[p.id], 0);
- document.getElementById("total").innerHTML = `${money(total)}<div style="font-size:14px;font-weight:normal;margin-top:6px;">20% (${money(total * 0.2)}) будет использовано для работы проекта Parasolka</div>`;
+  document.getElementById("total").textContent = money(total);
   document.getElementById("checkout").disabled = total === 0;
 }
 
