@@ -1,33 +1,203 @@
 <!doctype html>
 <html lang="uk">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Магазин</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link rel="stylesheet" href="style.css">
+
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,viewport-fit=cover"
+  >
+
+  <title>Магазин</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
 </head>
+
+
 <body>
-<header><h1>🛍 Магазин</h1><div id="user"></div></header>
+
+<header>
+
+  <h1>🛍 Магазин</h1>
+
+  <div id="user"></div>
+
+</header>
+
+
 <main>
+
+  <!-- КАТАЛОГ -->
+
   <section id="catalog"></section>
+
+
+  <!-- КОШИК -->
+
   <section id="cart" class="cart">
+
     <h2>🛒 Кошик</h2>
+
     <div id="cartItems"></div>
-    <div class="total">Разом: <strong id="total">0 Ft</strong></div>
-    <button id="checkout" disabled>Оформити замовлення</button>
+
+    <div class="total">
+
+      Разом:
+
+      <strong id="total">
+        0 Ft
+      </strong>
+
+    </div>
+
+    <button
+      id="checkout"
+      disabled
+    >
+      Оформити замовлення
+    </button>
+
   </section>
+
+
+  <!-- МОЇ ЗАМОВЛЕННЯ -->
+
+  <section
+    id="ordersSection"
+    class="cart"
+  >
+
+    <button
+      id="ordersButton"
+      class="secondary"
+    >
+      📋 Мої замовлення
+    </button>
+
+    <div
+      id="ordersList"
+      class="hidden"
+    ></div>
+
+  </section>
+
+
 </main>
-<div id="modal" class="modal hidden">
+
+
+<!-- МОДАЛЬНЕ ВІКНО ОФОРМЛЕННЯ -->
+
+<div
+  id="modal"
+  class="modal hidden"
+>
+
   <div class="box">
-    <h2>Оформлення замовлення</h2>
-    <label>Имя<input id="name" placeholder="Ваше ім’я"></label>
-    <label>Телефон<input id="phone" placeholder="+36 ..."></label>
-    <label>Комментарий<textarea id="comment" placeholder="Додаткова інформація"></textarea></label>
-    <button id="send">Підтвердити замовлення</button>
-    <button id="close" class="secondary">Назад</button>
+
+    <h2>
+      Оформлення замовлення
+    </h2>
+
+
+    <label>
+
+      Ім’я
+
+      <input
+        id="name"
+        placeholder="Ваше ім’я"
+      >
+
+    </label>
+
+
+    <label>
+
+      Телефон
+
+      <input
+        id="phone"
+        placeholder="+36 ..."
+      >
+
+    </label>
+
+
+    <label>
+
+      Коментар
+
+      <textarea
+        id="comment"
+        placeholder="Додаткова інформація"
+      ></textarea>
+
+    </label>
+
+
+    <button id="send">
+      Підтвердити замовлення
+    </button>
+
+
+    <button
+      id="close"
+      class="secondary"
+    >
+      Назад
+    </button>
+
   </div>
+
 </div>
+
+
+<!-- ПІДТВЕРДЖЕННЯ ЗАМОВЛЕННЯ -->
+
+<div
+  id="successModal"
+  class="modal hidden"
+>
+
+  <div class="box">
+
+    <h2>
+      ✅ Замовлення прийнято!
+    </h2>
+
+
+    <div id="successContent"></div>
+
+
+    <button
+      id="showOrders"
+    >
+      📋 Мої замовлення
+    </button>
+
+
+    <button
+      id="continueShopping"
+      class="secondary"
+    >
+      🛍 Повернутися до магазину
+    </button>
+
+  </div>
+
+</div>
+
+
 <script src="app.js"></script>
+
 </body>
+
 </html>
