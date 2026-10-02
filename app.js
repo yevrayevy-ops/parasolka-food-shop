@@ -14,6 +14,7 @@ let products = [];
 
 const cart = {};
 
+
 const money = n =>
   Number(n || 0).toLocaleString("uk-UA") + " Ft";
 
@@ -43,7 +44,8 @@ function getTelegramUser() {
 
 function getTelegramId() {
 
-  const user = getTelegramUser();
+  const user =
+    getTelegramUser();
 
   return user?.id
     ? String(user.id)
@@ -65,12 +67,14 @@ async function loadCustomerData() {
     document.getElementById("phone");
 
 
-  if (!nameInput || !phoneInput) return;
+  if (!nameInput || !phoneInput) {
+    return;
+  }
 
 
   /*
-   * Сначала берём сохранённые данные
-   * из телефона/браузера.
+   * Сначала берём данные,
+   * сохранённые на устройстве.
    */
 
   try {
@@ -86,16 +90,24 @@ async function loadCustomerData() {
       );
 
 
-    if (savedName && !nameInput.value) {
+    if (
+      savedName &&
+      !nameInput.value
+    ) {
 
-      nameInput.value = savedName;
+      nameInput.value =
+        savedName;
 
     }
 
 
-    if (savedPhone && !phoneInput.value) {
+    if (
+      savedPhone &&
+      !phoneInput.value
+    ) {
 
-      phoneInput.value = savedPhone;
+      phoneInput.value =
+        savedPhone;
 
     }
 
@@ -110,15 +122,17 @@ async function loadCustomerData() {
 
 
   /*
-   * Затем пытаемся получить
-   * последние данные из Google Sheets.
+   * Затем получаем последние
+   * данные клиента из Google Sheets.
    */
 
   const telegramId =
     getTelegramId();
 
 
-  if (!telegramId) return;
+  if (!telegramId) {
+    return;
+  }
 
 
   try {
@@ -141,7 +155,9 @@ async function loadCustomerData() {
       );
 
 
-    if (!response.ok) return;
+    if (!response.ok) {
+      return;
+    }
 
 
     const data =
@@ -200,6 +216,10 @@ function render() {
     );
 
 
+  /*
+   * Запоминаем открытые категории.
+   */
+
   const openCategories =
     new Set(
       [
@@ -227,11 +247,17 @@ function render() {
   }
 
 
+  /*
+   * Группировка товаров по категориям.
+   */
+
   const groups =
     [
       ...new Set(
         products.map(
-          p => p.category || "Інше"
+          p =>
+            p.category ||
+            "Інше"
         )
       )
     ];
@@ -316,7 +342,9 @@ function render() {
               p.photo
                 ? `
                   <img
-                    src="${escapeHtml(p.photo)}"
+                    src="${escapeHtml(
+                      p.photo
+                    )}"
                     alt=""
                     class="product-photo"
                   >
@@ -341,18 +369,25 @@ function render() {
               ${photo}
 
               <h3>
-                ${escapeHtml(p.name)}
+                ${escapeHtml(
+                  p.name
+                )}
               </h3>
 
               ${description}
 
               <div class="price">
-                ${money(p.price)}
+
+                ${money(
+                  p.price
+                )}
+
                 ${
                   !p.available
                     ? " — немає в наявності"
                     : ""
                 }
+
               </div>
 
               <div class="controls">
@@ -363,17 +398,22 @@ function render() {
                       ? "disabled"
                       : ""
                   }
+
                   onclick="change(
-                    ${JSON.stringify(p.id)},
+                    ${JSON.stringify(
+                      p.id
+                    )},
                     -1
                   )"
                 >
                   −
                 </button>
 
+
                 <span class="qty">
                   ${q}
                 </span>
+
 
                 <button
                   ${
@@ -381,8 +421,11 @@ function render() {
                       ? "disabled"
                       : ""
                   }
+
                   onclick="change(
-                    ${JSON.stringify(p.id)},
+                    ${JSON.stringify(
+                      p.id
+                    )},
                     1
                   )"
                 >
@@ -473,7 +516,8 @@ function renderCart() {
 
   const selected =
     products.filter(
-      p => cart[p.id]
+      p =>
+        cart[p.id]
     );
 
 
@@ -483,21 +527,33 @@ function renderCart() {
       ? selected
           .map(
             p => `
+
               <div class="cartrow">
 
                 <span>
-                  ${escapeHtml(p.name)}
-                  × ${cart[p.id]}
+
+                  ${escapeHtml(
+                    p.name
+                  )}
+
+                  ×
+
+                  ${cart[p.id]}
+
                 </span>
 
+
                 <span>
+
                   ${money(
                     p.price *
                     cart[p.id]
                   )}
+
                 </span>
 
               </div>
+
             `
           )
           .join("")
@@ -539,7 +595,9 @@ function renderCart() {
       </span>
 
       <strong>
-        ${money(subtotal)}
+        ${money(
+          subtotal
+        )}
       </strong>
 
     </div>
@@ -552,7 +610,9 @@ function renderCart() {
       </span>
 
       <strong>
-        −${money(onlineDiscount)}
+        −${money(
+          onlineDiscount
+        )}
       </strong>
 
     </div>
@@ -565,7 +625,9 @@ function renderCart() {
       </span>
 
       <strong>
-        ${money(finalTotal)}
+        ${money(
+          finalTotal
+        )}
       </strong>
 
     </div>
@@ -578,7 +640,9 @@ function renderCart() {
       </span>
 
       <strong>
-        ${money(parasolkaAmount)}
+        ${money(
+          parasolkaAmount
+        )}
       </strong>
 
     </div>
@@ -652,7 +716,9 @@ async function loadProducts() {
           ...p,
 
           price:
-            Number(p.price) || 0,
+            Number(
+              p.price
+            ) || 0,
 
           available:
             p.available === true ||
@@ -673,7 +739,9 @@ async function loadProducts() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
 
 
     catalog.innerHTML = `
@@ -700,84 +768,8 @@ async function loadProducts() {
 
 
 /* =========================================================
-   MY ORDERS
+   MY ORDERS MODAL
 ========================================================= */
-
-function createMyOrdersButton() {
-
-  /*
-   * Если кнопка уже есть в index.html —
-   * используем её.
-   */
-
-  let button =
-    document.getElementById(
-      "myOrders"
-    );
-
-
-  if (!button) {
-
-    button =
-      document.createElement(
-        "button"
-      );
-
-
-    button.id =
-      "myOrders";
-
-
-    button.type =
-      "button";
-
-
-    button.textContent =
-      "📋 Мої замовлення";
-
-
-    button.style.cssText = `
-
-      display:block;
-      width:calc(100% - 40px);
-      margin:20px auto;
-      padding:14px 20px;
-      border:0;
-      border-radius:12px;
-      background:#333;
-      color:white;
-      font-size:18px;
-      cursor:pointer;
-
-    `;
-
-
-    const cart =
-      document.getElementById(
-        "cart"
-      );
-
-
-    if (cart) {
-
-      cart.after(button);
-
-    } else {
-
-      document.body.appendChild(
-        button
-      );
-
-    }
-
-  }
-
-
-  button.onclick =
-    loadMyOrders;
-
-}
-
 
 function createOrdersModal() {
 
@@ -787,7 +779,9 @@ function createOrdersModal() {
     );
 
 
-  if (modal) return modal;
+  if (modal) {
+    return modal;
+  }
 
 
   modal =
@@ -841,6 +835,7 @@ function createOrdersModal() {
         <h2 style="margin:0;">
           📋 Мої замовлення
         </h2>
+
 
         <button
           id="closeOrders"
@@ -909,9 +904,83 @@ function createOrdersModal() {
 }
 
 
+/* =========================================================
+   FIND EXISTING MY ORDERS BUTTON
+========================================================= */
+
+function setupMyOrdersButton() {
+
+  /*
+   * Сначала ищем кнопку по ID.
+   */
+
+  let button =
+    document.getElementById(
+      "myOrders"
+    );
+
+
+  /*
+   * Если ID нет — ищем существующую
+   * кнопку по её тексту.
+   */
+
+  if (!button) {
+
+    button =
+      [
+        ...document.querySelectorAll(
+          "button"
+        )
+      ].find(
+        button =>
+          button.textContent
+            .includes(
+              "Мої замовлення"
+            )
+      );
+
+  }
+
+
+  /*
+   * Если нашли — назначаем ей ID
+   * и обработчик.
+   */
+
+  if (button) {
+
+    button.id =
+      "myOrders";
+
+
+    button.onclick =
+      loadMyOrders;
+
+  }
+
+
+  /*
+   * ВАЖНО:
+   *
+   * Мы НЕ создаём новую кнопку.
+   *
+   * Поэтому второй кнопки больше
+   * не появится.
+   */
+
+}
+
+
+/* =========================================================
+   DATE
+========================================================= */
+
 function formatOrderDate(date) {
 
-  if (!date) return "";
+  if (!date) {
+    return "";
+  }
 
 
   try {
@@ -926,7 +995,9 @@ function formatOrderDate(date) {
       )
     ) {
 
-      return String(date);
+      return String(
+        date
+      );
 
     }
 
@@ -944,14 +1015,22 @@ function formatOrderDate(date) {
 
   } catch {
 
-    return String(date);
+    return String(
+      date
+    );
 
   }
 
 }
 
 
-function renderOrders(orders) {
+/* =========================================================
+   RENDER ORDERS
+========================================================= */
+
+function renderOrders(
+  orders
+) {
 
   const content =
     document.getElementById(
@@ -1004,40 +1083,60 @@ function renderOrders(orders) {
                         font-weight:600;
                       "
                     >
+
                       ${escapeHtml(
                         item.name
                       )}
+
                     </div>
+
 
                     ${
                       item.category
                         ? `
+
                           <div
                             style="
                               color:#777;
                               font-size:13px;
                             "
                           >
+
                             ${escapeHtml(
                               item.category
                             )}
+
                           </div>
+
                         `
                         : ""
                     }
+
 
                     <div
                       style="
                         margin-top:3px;
                       "
                     >
+
                       ${item.quantity}
+
                       ×
-                      ${money(item.price)}
+
+                      ${money(
+                        item.price
+                      )}
+
                       =
+
                       <b>
-                        ${money(item.sum)}
+
+                        ${money(
+                          item.sum
+                        )}
+
                       </b>
+
                     </div>
 
                   </div>
@@ -1068,10 +1167,14 @@ function renderOrders(orders) {
               >
 
                 <strong>
-                  Замовлення №${escapeHtml(
+
+                  Замовлення №
+                  ${escapeHtml(
                     order.orderNumber
                   )}
+
                 </strong>
+
 
                 <span
                   style="
@@ -1079,9 +1182,11 @@ function renderOrders(orders) {
                     font-size:13px;
                   "
                 >
+
                   ${formatOrderDate(
                     order.date
                   )}
+
                 </span>
 
               </div>
@@ -1093,13 +1198,18 @@ function renderOrders(orders) {
                   color:#555;
                 "
               >
+
                 Статус:
+
                 <b>
+
                   ${escapeHtml(
                     order.status ||
                     "—"
                   )}
+
                 </b>
+
               </div>
 
 
@@ -1114,24 +1224,34 @@ function renderOrders(orders) {
               >
 
                 <div>
+
                   Сума:
+
                   <b>
+
                     ${money(
                       order.subtotal
                     )}
+
                   </b>
+
                 </div>
+
 
                 <div
                   style="
                     color:#a33;
                   "
                 >
+
                   Знижка 10%:
+
                   −${money(
                     order.onlineDiscount
                   )}
+
                 </div>
+
 
                 <div
                   style="
@@ -1139,13 +1259,19 @@ function renderOrders(orders) {
                     margin-top:4px;
                   "
                 >
+
                   До сплати:
+
                   <b>
+
                     ${money(
                       order.total
                     )}
+
                   </b>
+
                 </div>
+
 
                 <div
                   style="
@@ -1153,10 +1279,13 @@ function renderOrders(orders) {
                     font-size:14px;
                   "
                 >
+
                   20% на користь Парасольки:
+
                   ${money(
                     order.parasolkaAmount
                   )}
+
                 </div>
 
               </div>
@@ -1165,6 +1294,7 @@ function renderOrders(orders) {
               ${
                 order.comment
                   ? `
+
                     <div
                       style="
                         margin-top:10px;
@@ -1172,11 +1302,19 @@ function renderOrders(orders) {
                         border-top:1px solid #eee;
                       "
                     >
-                      <b>Коментар:</b><br>
+
+                      <b>
+                        Коментар:
+                      </b>
+
+                      <br>
+
                       ${escapeHtml(
                         order.comment
                       )}
+
                     </div>
+
                   `
                   : ""
               }
@@ -1191,6 +1329,10 @@ function renderOrders(orders) {
 
 }
 
+
+/* =========================================================
+   LOAD MY ORDERS
+========================================================= */
 
 async function loadMyOrders() {
 
@@ -1217,7 +1359,9 @@ async function loadMyOrders() {
         color:#666;
       "
     >
+
       Завантажуємо замовлення…
+
     </div>
 
   `;
@@ -1342,31 +1486,33 @@ async function loadMyOrders() {
 
 document.getElementById(
   "checkout"
-).onclick = async () => {
+).onclick =
+  async () => {
 
-  document.getElementById(
-    "modal"
-  ).classList.remove(
-    "hidden"
-  );
+    document.getElementById(
+      "modal"
+    ).classList.remove(
+      "hidden"
+    );
 
 
-  await loadCustomerData();
+    await loadCustomerData();
 
-};
+  };
 
 
 document.getElementById(
   "close"
-).onclick = () => {
+).onclick =
+  () => {
 
-  document.getElementById(
-    "modal"
-  ).classList.add(
-    "hidden"
-  );
+    document.getElementById(
+      "modal"
+    ).classList.add(
+      "hidden"
+    );
 
-};
+  };
 
 
 /* =========================================================
@@ -1390,7 +1536,10 @@ document.getElementById(
       ).value.trim();
 
 
-    if (!name || !phone) {
+    if (
+      !name ||
+      !phone
+    ) {
 
       alert(
         "Вкажіть ім’я та телефон"
@@ -1404,7 +1553,8 @@ document.getElementById(
     const items =
       products
         .filter(
-          p => cart[p.id]
+          p =>
+            cart[p.id]
         )
         .map(
           p => ({
@@ -1487,7 +1637,8 @@ document.getElementById(
 
 
     /*
-     * Запоминаем имя и телефон.
+     * Сохраняем имя и телефон
+     * для следующих заказов.
      */
 
     try {
@@ -1529,16 +1680,12 @@ document.getElementById(
 
     try {
 
-      /*
-       * text/plain позволяет избежать
-       * CORS preflight.
-       */
-
       await fetch(
         APPS_SCRIPT_URL,
         {
 
-          method: "POST",
+          method:
+            "POST",
 
           headers: {
 
@@ -1633,8 +1780,8 @@ if (
    START
 ========================================================= */
 
-createMyOrdersButton();
-
 createOrdersModal();
+
+setupMyOrdersButton();
 
 loadProducts();
