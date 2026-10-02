@@ -2,16 +2,12 @@ const APPS_SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbyVHhPfXR9SWugxdubgTBA0CH1LIlt6gK4A5e4L9wfueL8RSoSG89FAVjWjGbDXh1FGZg/exec";
 
 
-const tg =
-  window.Telegram?.WebApp;
+const tg = window.Telegram?.WebApp;
 
 
 if (tg) {
-
   tg.ready();
-
   tg.expand();
-
 }
 
 
@@ -21,32 +17,233 @@ const cart = {};
 
 
 const money = n =>
-  Number(n || 0)
-    .toLocaleString("uk-UA") +
-  " Ft";
+  Number(n || 0).toLocaleString("uk-UA") + " Ft";
 
 
 function escapeHtml(value) {
 
   return String(value ?? "")
-
     .replaceAll("&", "&amp;")
-
     .replaceAll("<", "&lt;")
-
     .replaceAll(">", "&gt;")
-
     .replaceAll('"', "&quot;")
-
     .replaceAll("'", "&#039;");
-
 }
 
 
-/* =========================================================
-   РЕНДЕР КАТАЛОГУ
-========================================================= */
+/**
+ * Telegram ID текущего пользователя.
+ */
+function getTelegramId() {
 
+  return tg?.initDataUnsafe?.user?.id
+    ? String(tg.initDataUnsafe.user.id)
+    : "";
+}
+
+
+/**
+ * Сохраняем имя и телефон локально.
+ */
+function saveCustomerLocally(name, phone) {
+
+  try {
+
+    localStorage.setItem(
+      "parasolka_customer",
+      JSON.stringify({
+        name: name || "",
+        phone: phone || ""
+      })
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "Не удалось сохранить данные клиента локально",
+      error
+    );
+
+  }
+}
+
+
+/**
+ * Загружаем локально сохранённые данные.
+ */
+function loadCustomerLocally() {
+
+  try {
+
+    const raw =
+      localStorage.getItem(
+        "parasolka_customer"
+      );
+
+
+    if (!raw) {
+      return null;
+    }
+
+
+    return JSON.parse(raw);
+
+  } catch (error) {
+
+    return null;
+  }
+}
+
+
+/**
+ * Загружаем имя и телефон клиента
+ * из Google Sheets по Telegram ID.
+ */
+async function loadCustomerData() {
+
+  const telegramId =
+    getTelegramId();
+
+
+  const nameInput =
+    document.getElementById(
+      "name"
+    );
+
+
+  const phoneInput =
+    document.getElementById(
+      "phone"
+    );
+
+
+  if (
+    !nameInput ||
+    !phoneInput
+  ) {
+
+    return;
+  }
+
+
+  /*
+   * Сначала мгновенно подставляем
+   * локально сохранённые данные.
+   */
+  const localCustomer =
+    loadCustomerLocally();
+
+
+  if (localCustomer) {
+
+    if (
+      !nameInput.value &&
+      localCustomer.name
+    ) {
+
+      nameInput.value =
+        localCustomer.name;
+    }
+
+
+    if (
+      !phoneInput.value &&
+      localCustomer.phone
+    ) {
+
+      phoneInput.value =
+        localCustomer.phone;
+    }
+  }
+
+
+  /*
+   * Если приложение открыто внутри Telegram,
+   * ищем последние данные пользователя
+   * в Google Sheets.
+   */
+  if (!telegramId) {
+    return;
+  }
+
+
+  try {
+
+    const url =
+      APPS_SCRIPT_URL +
+      "?action=customer&telegramId=" +
+      encodeURIComponent(
+        telegramId
+      );
+
+
+    const response =
+      await fetch(
+        url,
+        {
+          method: "GET",
+          cache: "no-store"
+        }
+      );
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "HTTP " +
+        response.status
+      );
+    }
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      data &&
+      data.found
+    ) {
+
+      if (data.name) {
+
+        nameInput.value =
+          data.name;
+      }
+
+
+      if (data.phone) {
+
+        phoneInput.value =
+          data.phone;
+      }
+
+
+      saveCustomerLocally(
+        data.name || "",
+        data.phone || ""
+      );
+    }
+
+
+  } catch (error) {
+
+    /*
+     * Если Google Sheets временно недоступен,
+     * форма всё равно может использовать
+     * локально сохранённые данные.
+     */
+    console.warn(
+      "Не удалось загрузить данные клиента",
+      error
+    );
+  }
+}
+
+
+/**
+ * Отрисовка каталога.
+ */
 function render() {
 
   const catalog =
@@ -55,19 +252,24 @@ function render() {
     );
 
 
+  if (!catalog) {
+    return;
+  }
+
+
+  /*
+   * Запоминаем открытые категории.
+   */
   const openCategories =
     new Set(
-
       [
         ...catalog.querySelectorAll(
           "details.category[open]"
         )
-      ]
-
-      .map(
-        d => d.dataset.category
+      ].map(
+        d =>
+          d.dataset.category
       )
-
     );
 
 
@@ -82,21 +284,19 @@ function render() {
     renderCart();
 
     return;
-
   }
 
 
-  const groups = [
-
-    ...new Set(
-
-      products.map(
-        p => p.category || "Інше"
+  const groups =
+    [
+      ...new Set(
+        products.map(
+          p =>
+            p.category ||
+            "Інше"
+        )
       )
-
-    )
-
-  ];
+    ];
 
 
   groups.forEach(
@@ -150,12 +350,13 @@ function render() {
 
 
       products
-
         .filter(
           p =>
-            (p.category || "Інше") === cat
+            (
+              p.category ||
+              "Інше"
+            ) === cat
         )
-
         .forEach(
           p => {
 
@@ -177,27 +378,12 @@ function render() {
               p.photo
 
                 ? `
-
                   <img
-
-                    src="${escapeHtml(
-                      p.photo
-                    )}"
-
+                    src="${escapeHtml(p.photo)}"
                     alt=""
-
                     class="product-photo"
-
                     loading="lazy"
-
-                    decoding="async"
-
-                    width="600"
-
-                    height="600"
-
                   >
-
                 `
 
                 : "";
@@ -207,15 +393,11 @@ function render() {
               p.description
 
                 ? `
-
                   <div class="description">
-
                     ${escapeHtml(
                       p.description
                     )}
-
                   </div>
-
                 `
 
                 : "";
@@ -225,28 +407,21 @@ function render() {
 
               ${photo}
 
-
               <h3>
-
                 ${escapeHtml(
                   p.name
                 )}
-
               </h3>
-
 
               ${description}
 
-
               <div class="price">
 
-                ${money(
-                  p.price
-                )}
+                ${money(p.price)}
 
                 ${
                   !p.available
-                    ? "— немає в наявності"
+                    ? " — немає в наявності"
                     : ""
                 }
 
@@ -255,9 +430,7 @@ function render() {
 
               <div class="controls">
 
-
                 <button
-
                   ${
                     !p.available
                       ? "disabled"
@@ -265,31 +438,20 @@ function render() {
                   }
 
                   onclick="change(
-
-                    ${JSON.stringify(
-                      p.id
-                    )},
-
+                    ${JSON.stringify(p.id)},
                     -1
-
                   )"
-
                 >
-
                   −
-
                 </button>
 
 
                 <span class="qty">
-
                   ${q}
-
                 </span>
 
 
                 <button
-
                   ${
                     !p.available
                       ? "disabled"
@@ -297,21 +459,12 @@ function render() {
                   }
 
                   onclick="change(
-
-                    ${JSON.stringify(
-                      p.id
-                    )},
-
+                    ${JSON.stringify(p.id)},
                     1
-
                   )"
-
                 >
-
                   +
-
                 </button>
-
 
               </div>
 
@@ -340,18 +493,13 @@ function render() {
 
 
   renderCart();
-
 }
 
 
-/* =========================================================
-   КІЛЬКІСТЬ ТОВАРУ
-========================================================= */
-
-function change(
-  id,
-  delta
-) {
+/**
+ * Изменение количества товара.
+ */
+function change(id, delta) {
 
   const product =
     products.find(
@@ -367,39 +515,30 @@ function change(
   ) {
 
     return;
-
   }
 
 
   cart[id] =
     Math.max(
-
       0,
-
       (cart[id] || 0) +
-      delta
-
+        delta
     );
 
 
-  if (
-    cart[id] === 0
-  ) {
+  if (cart[id] === 0) {
 
     delete cart[id];
-
   }
 
 
   render();
-
 }
 
 
-/* =========================================================
-   КОШИК
-========================================================= */
-
+/**
+ * Отрисовка корзины.
+ */
 function renderCart() {
 
   const el =
@@ -408,71 +547,75 @@ function renderCart() {
     );
 
 
+  const checkout =
+    document.getElementById(
+      "checkout"
+    );
+
+
+  const totalEl =
+    document.getElementById(
+      "total"
+    );
+
+
+  if (
+    !el ||
+    !checkout ||
+    !totalEl
+  ) {
+
+    return;
+  }
+
+
   const selected =
     products.filter(
-      p => cart[p.id]
+      p =>
+        cart[p.id]
     );
 
 
   el.innerHTML =
-
     selected.length
 
       ? selected
-
           .map(
-
             p => `
 
               <div class="cartrow">
 
                 <span>
-
                   ${escapeHtml(
                     p.name
                   )}
-
-                  ×
-
-                  ${cart[p.id]}
-
+                  × ${cart[p.id]}
                 </span>
 
 
                 <span>
-
                   ${money(
-
                     p.price *
                     cart[p.id]
-
                   )}
-
                 </span>
 
               </div>
 
             `
-
           )
-
           .join("")
-
 
       : "Кошик поки порожній";
 
 
   const subtotal =
     selected.reduce(
-
       (s, p) =>
-
         s +
         p.price *
         cart[p.id],
-
       0
-
     );
 
 
@@ -489,25 +632,16 @@ function renderCart() {
     finalTotal * 0.20;
 
 
-  document.getElementById(
-    "total"
-  ).innerHTML = `
+  totalEl.innerHTML = `
 
     <div class="summary-line">
 
       <span>
-
         Сума:
-
       </span>
 
-
       <strong>
-
-        ${money(
-          subtotal
-        )}
-
+        ${money(subtotal)}
       </strong>
 
     </div>
@@ -516,18 +650,11 @@ function renderCart() {
     <div class="summary-line discount">
 
       <span>
-
         Знижка за онлайн-замовлення (10%):
-
       </span>
 
-
       <strong>
-
-        −${money(
-          onlineDiscount
-        )}
-
+        −${money(onlineDiscount)}
       </strong>
 
     </div>
@@ -536,18 +663,11 @@ function renderCart() {
     <div class="summary-line final">
 
       <span>
-
         До сплати після знижки:
-
       </span>
 
-
       <strong>
-
-        ${money(
-          finalTotal
-        )}
-
+        ${money(finalTotal)}
       </strong>
 
     </div>
@@ -556,18 +676,11 @@ function renderCart() {
     <div class="summary-line donation">
 
       <span>
-
         20% на користь Парасольки:
-
       </span>
 
-
       <strong>
-
-        ${money(
-          parasolkaAmount
-        )}
-
+        ${money(parasolkaAmount)}
       </strong>
 
     </div>
@@ -575,24 +688,25 @@ function renderCart() {
   `;
 
 
-  document.getElementById(
-    "checkout"
-  ).disabled =
+  checkout.disabled =
     subtotal === 0;
-
 }
 
 
-/* =========================================================
-   ЗАВАНТАЖЕННЯ ТОВАРІВ
-========================================================= */
-
+/**
+ * Загрузка каталога.
+ */
 async function loadProducts() {
 
   const catalog =
     document.getElementById(
       "catalog"
     );
+
+
+  if (!catalog) {
+    return;
+  }
 
 
   catalog.innerHTML =
@@ -617,7 +731,6 @@ async function loadProducts() {
         "HTTP " +
         response.status
       );
-
     }
 
 
@@ -625,14 +738,11 @@ async function loadProducts() {
       await response.json();
 
 
-    if (
-      !Array.isArray(data)
-    ) {
+    if (!Array.isArray(data)) {
 
       throw new Error(
-        "Неправильний формат каталогу"
+        "Невірний формат каталогу"
       );
-
     }
 
 
@@ -643,24 +753,18 @@ async function loadProducts() {
           ...p,
 
           price:
-            Number(
-              p.price
-            ) || 0,
-
+            Number(p.price) || 0,
 
           available:
-
             p.available === true ||
-
             String(
               p.available
             ).toLowerCase() ===
-            "true" ||
-
+              "true" ||
             String(
               p.available
             ).toLowerCase() ===
-            "да"
+              "да"
 
         })
       );
@@ -684,9 +788,8 @@ async function loadProducts() {
 
         <br><br>
 
-        Перевірте підключення
-        до інтернету та спробуйте
-        відкрити магазин ще раз.
+        Перевірте підключення до інтернету
+        та спробуйте відкрити магазин ще раз.
 
       </div>
 
@@ -694,810 +797,352 @@ async function loadProducts() {
 
 
     renderCart();
-
   }
-
 }
 
 
-/* =========================================================
-   МОДАЛЬНЕ ВІКНО
-========================================================= */
-
-document.getElementById(
-  "checkout"
-).onclick = () => {
-
+/**
+ * Открытие формы заказа.
+ */
+const checkoutButton =
   document.getElementById(
-    "modal"
-  ).classList.remove(
-    "hidden"
-  );
-
-};
-
-
-document.getElementById(
-  "close"
-).onclick = () => {
-
-  document.getElementById(
-    "modal"
-  ).classList.add(
-    "hidden"
-  );
-
-};
-
-
-/* =========================================================
-   НАДСИЛАННЯ ЗАМОВЛЕННЯ
-========================================================= */
-
-document.getElementById(
-  "send"
-).onclick = async () => {
-
-
-  const name =
-    document.getElementById(
-      "name"
-    ).value.trim();
-
-
-  const phone =
-    document.getElementById(
-      "phone"
-    ).value.trim();
-
-
-  const comment =
-    document.getElementById(
-      "comment"
-    ).value.trim();
-
-
-  if (
-    !name ||
-    !phone
-  ) {
-
-    alert(
-      "Вкажіть ім’я та номер телефону"
-    );
-
-    return;
-
-  }
-
-
-  const items =
-    products
-
-      .filter(
-        p => cart[p.id]
-      )
-
-      .map(
-        p => ({
-
-          id:
-            p.id,
-
-          name:
-            p.name,
-
-          quantity:
-            cart[p.id],
-
-          price:
-            p.price
-
-        })
-      );
-
-
-  if (
-    !items.length
-  ) {
-
-    alert(
-      "Кошик порожній"
-    );
-
-    return;
-
-  }
-
-
-  const subtotal =
-    items.reduce(
-
-      (s, p) =>
-
-        s +
-        p.price *
-        p.quantity,
-
-      0
-
-    );
-
-
-  const onlineDiscount =
-    subtotal * 0.10;
-
-
-  const total =
-    subtotal * 0.90;
-
-
-  const parasolkaAmount =
-    total * 0.20;
-
-
-  const order = {
-
-    name,
-
-    phone,
-
-    comment,
-
-    items,
-
-    subtotal,
-
-    onlineDiscount,
-
-    total,
-
-    parasolkaAmount,
-
-
-    telegramUser:
-
-      tg?.initDataUnsafe?.user ||
-      null
-
-  };
-
-
-  const sendButton =
-    document.getElementById(
-      "send"
-    );
-
-
-  sendButton.disabled =
-    true;
-
-
-  sendButton.textContent =
-    "Надсилаємо…";
-
-
-  try {
-
-
-    /*
-     * Надсилаємо замовлення.
-     *
-     * no-cors потрібен для Google Apps Script.
-     */
-
-    await fetch(
-
-      APPS_SCRIPT_URL,
-
-      {
-
-        method:
-          "POST",
-
-        headers: {
-
-          "Content-Type":
-            "text/plain;charset=utf-8"
-
-        },
-
-        body:
-          JSON.stringify(
-            order
-          ),
-
-        mode:
-          "no-cors"
-
-      }
-
-    );
-
-
-    /*
-     * Даємо Apps Script трохи часу
-     * записати замовлення в таблицю.
-     */
-
-    await new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          1000
-        )
-    );
-
-
-    /*
-     * Закриваємо форму.
-     */
-
-    document.getElementById(
-      "modal"
-    ).classList.add(
-      "hidden"
-    );
-
-
-    /*
-     * Показуємо клієнту,
-     * що замовлення прийнято.
-     */
-
-    showSuccess();
-
-
-    /*
-     * Очищаємо кошик.
-     */
-
-    Object.keys(cart)
-      .forEach(
-        key =>
-          delete cart[key]
-      );
-
-
-    render();
-
-
-    /*
-     * Оновлюємо історію замовлень.
-     */
-
-    loadCustomerOrders();
-
-
-  } catch (error) {
-
-    console.error(
-      error
-    );
-
-
-    alert(
-      "Не вдалося надіслати замовлення. Спробуйте ще раз."
-    );
-
-
-  } finally {
-
-    sendButton.disabled =
-      false;
-
-
-    sendButton.textContent =
-      "Підтвердити замовлення";
-
-  }
-
-};
-
-
-/* =========================================================
-   ПІДТВЕРДЖЕННЯ ЗАМОВЛЕННЯ
-========================================================= */
-
-function showSuccess() {
-
-  const selected =
-    products.filter(
-      p => cart[p.id]
-    );
-
-
-  /*
-   * Після очищення cart нам потрібна
-   * информация о заказе.
-   *
-   * Поэтому функция использует
-   * сохранённые данные ниже.
-   */
-
-  const content =
-    document.getElementById(
-      "successContent"
-    );
-
-
-  content.innerHTML = `
-
-    <p>
-
-      Ваше замовлення
-      успішно прийнято.
-
-    </p>
-
-
-    <p>
-
-      Ми зв’яжемося з вами
-      для підтвердження.
-
-    </p>
-
-  `;
-
-
-  document.getElementById(
-    "successModal"
-  ).classList.remove(
-    "hidden"
-  );
-
-}
-
-
-/* =========================================================
-   ЗАКРИТТЯ ПІДТВЕРДЖЕННЯ
-========================================================= */
-
-document.getElementById(
-  "continueShopping"
-).onclick = () => {
-
-  document.getElementById(
-    "successModal"
-  ).classList.add(
-    "hidden"
-  );
-
-};
-
-
-/* =========================================================
-   МОЇ ЗАМОВЛЕННЯ
-========================================================= */
-
-document.getElementById(
-  "ordersButton"
-).onclick = async () => {
-
-  const list =
-    document.getElementById(
-      "ordersList"
-    );
-
-
-  if (
-    list.classList.contains(
-      "hidden"
-    )
-  ) {
-
-    list.classList.remove(
-      "hidden"
-    );
-
-
-    await loadCustomerOrders();
-
-  } else {
-
-    list.classList.add(
-      "hidden"
-    );
-
-  }
-
-};
-
-
-/* =========================================================
-   КНОПКА «МОЇ ЗАМОВЛЕННЯ»
-   ПІСЛЯ ОФОРМЛЕННЯ
-========================================================= */
-
-document.getElementById(
-  "showOrders"
-).onclick = async () => {
-
-  document.getElementById(
-    "successModal"
-  ).classList.add(
-    "hidden"
+    "checkout"
   );
 
 
-  const list =
-    document.getElementById(
-      "ordersList"
-    );
+if (checkoutButton) {
 
+  checkoutButton.onclick =
+    async () => {
 
-  list.classList.remove(
-    "hidden"
-  );
-
-
-  await loadCustomerOrders();
-
-
-  list.scrollIntoView({
-    behavior:
-      "smooth"
-  });
-
-};
-
-
-/* =========================================================
-   ЗАВАНТАЖЕННЯ ІСТОРІЇ
-========================================================= */
-
-async function loadCustomerOrders() {
-
-  const list =
-    document.getElementById(
-      "ordersList"
-    );
-
-
-  const telegramId =
-    tg?.initDataUnsafe?.user?.id;
-
-
-  if (!telegramId) {
-
-    list.innerHTML = `
-
-      <p>
-
-        Історія замовлень доступна
-        лише в Telegram.
-
-      </p>
-
-    `;
-
-    return;
-
-  }
-
-
-  list.innerHTML = `
-
-    <div class="loading">
-
-      Завантажуємо замовлення…
-
-    </div>
-
-  `;
-
-
-  try {
-
-
-    const url =
-
-      APPS_SCRIPT_URL +
-
-      "?action=orders&telegramId=" +
-
-      encodeURIComponent(
-        telegramId
-      );
-
-
-    const response =
-      await fetch(
-        url,
-        {
-          method: "GET",
-          cache: "no-store"
-        }
-      );
-
-
-    if (!response.ok) {
-
-      throw new Error(
-        "HTTP " +
-        response.status
-      );
-
-    }
-
-
-    const orders =
-      await response.json();
-
-
-    if (
-      !Array.isArray(orders) ||
-      orders.length === 0
-    ) {
-
-      list.innerHTML = `
-
-        <p>
-
-          У вас ще немає замовлень.
-
-        </p>
-
-      `;
-
-      return;
-
-    }
-
-
-    list.innerHTML =
-
-      orders
-
-        .map(
-          order =>
-            renderCustomerOrder(
-              order
-            )
-        )
-
-        .join("");
-
-
-  } catch (error) {
-
-    console.error(
-      error
-    );
-
-
-    list.innerHTML = `
-
-      <p>
-
-        Не вдалося завантажити
-        історію замовлень.
-
-      </p>
-
-    `;
-
-  }
-
-}
-
-
-/* =========================================================
-   ВІДОБРАЖЕННЯ ОДНОГО ЗАМОВЛЕННЯ
-========================================================= */
-
-function renderCustomerOrder(
-  order
-) {
-
-  const date =
-    order.date
-
-      ? new Date(
-          order.date
-        ).toLocaleString(
-          "uk-UA"
-        )
-
-      : "";
-
-
-  const status =
-    order.status === "Новый"
-      ? "Новий"
-      : (
-          order.status ||
-          "Новий"
+      const modal =
+        document.getElementById(
+          "modal"
         );
 
 
-  const items =
-    (order.items || [])
+      if (modal) {
 
-      .map(
-
-        item => `
-
-          <div class="cartrow">
-
-            <span>
-
-              ${escapeHtml(
-                item.name
-              )}
-
-              ×
-
-              ${item.quantity}
-
-            </span>
+        modal.classList.remove(
+          "hidden"
+        );
+      }
 
 
-            <span>
+      /*
+       * Автоматически подставляем
+       * имя и телефон клиента.
+       */
+      await loadCustomerData();
 
-              ${money(
-                item.sum
-              )}
-
-            </span>
-
-          </div>
-
-        `
-
-      )
-
-      .join("");
-
-
-  return `
-
-    <div
-      class="customer-order"
-      style="
-        margin-top:15px;
-        padding:15px;
-        border-radius:12px;
-        background:rgba(0,0,0,0.04);
-      "
-    >
-
-
-      <h3>
-
-        🧾 Замовлення №
-        ${escapeHtml(
-          order.orderNumber
-        )}
-
-      </h3>
-
-
-      <p>
-
-        <b>Дата:</b>
-        ${escapeHtml(
-          date
-        )}
-
-      </p>
-
-
-      <p>
-
-        <b>Статус:</b>
-        ${escapeHtml(
-          status
-        )}
-
-      </p>
-
-
-      <div>
-
-        ${items}
-
-      </div>
-
-
-      <hr>
-
-
-      <div class="summary-line">
-
-        <span>
-          Сума до знижки:
-        </span>
-
-        <strong>
-          ${money(
-            order.subtotal
-          )}
-        </strong>
-
-      </div>
-
-
-      <div class="summary-line discount">
-
-        <span>
-          Знижка 10%:
-        </span>
-
-        <strong>
-          −${money(
-            order.onlineDiscount
-          )}
-        </strong>
-
-      </div>
-
-
-      <div class="summary-line final">
-
-        <span>
-          До сплати:
-        </span>
-
-        <strong>
-          ${money(
-            order.total
-          )}
-        </strong>
-
-      </div>
-
-
-      <div class="summary-line donation">
-
-        <span>
-          20% на користь Парасольки:
-        </span>
-
-        <strong>
-          ${money(
-            order.parasolkaAmount
-          )}
-        </strong>
-
-      </div>
-
-
-    </div>
-
-  `;
-
+    };
 }
 
 
-/* =========================================================
-   ІМ'Я TELEGRAM
-========================================================= */
+/**
+ * Закрытие формы.
+ */
+const closeButton =
+  document.getElementById(
+    "close"
+  );
 
+
+if (closeButton) {
+
+  closeButton.onclick =
+    () => {
+
+      const modal =
+        document.getElementById(
+          "modal"
+        );
+
+
+      if (modal) {
+
+        modal.classList.add(
+          "hidden"
+        );
+      }
+
+    };
+}
+
+
+/**
+ * Отправка заказа.
+ */
+const sendButton =
+  document.getElementById(
+    "send"
+  );
+
+
+if (sendButton) {
+
+  sendButton.onclick =
+    async () => {
+
+      const nameInput =
+        document.getElementById(
+          "name"
+        );
+
+
+      const phoneInput =
+        document.getElementById(
+          "phone"
+        );
+
+
+      const commentInput =
+        document.getElementById(
+          "comment"
+        );
+
+
+      const name =
+        nameInput
+          ? nameInput.value.trim()
+          : "";
+
+
+      const phone =
+        phoneInput
+          ? phoneInput.value.trim()
+          : "";
+
+
+      if (
+        !name ||
+        !phone
+      ) {
+
+        alert(
+          "Будь ласка, вкажіть ім’я та телефон."
+        );
+
+        return;
+      }
+
+
+      const items =
+        products
+          .filter(
+            p =>
+              cart[p.id]
+          )
+          .map(
+            p => ({
+
+              id:
+                p.id,
+
+              name:
+                p.name,
+
+              quantity:
+                cart[p.id],
+
+              price:
+                p.price
+
+            })
+          );
+
+
+      if (!items.length) {
+
+        alert(
+          "Кошик порожній."
+        );
+
+        return;
+      }
+
+
+      const subtotal =
+        items.reduce(
+          (s, p) =>
+            s +
+            p.price *
+            p.quantity,
+          0
+        );
+
+
+      const onlineDiscount =
+        subtotal * 0.10;
+
+
+      const total =
+        subtotal * 0.90;
+
+
+      const parasolkaAmount =
+        total * 0.20;
+
+
+      const order = {
+
+        name,
+
+        phone,
+
+        comment:
+          commentInput
+            ? commentInput.value.trim()
+            : "",
+
+        items,
+
+        subtotal,
+
+        onlineDiscount,
+
+        total,
+
+        parasolkaAmount,
+
+        telegramUser:
+          tg?.initDataUnsafe?.user ||
+          null
+
+      };
+
+
+      sendButton.disabled =
+        true;
+
+
+      sendButton.textContent =
+        "Відправляємо…";
+
+
+      try {
+
+        /*
+         * Сохраняем локально.
+         */
+        saveCustomerLocally(
+          name,
+          phone
+        );
+
+
+        /*
+         * Отправляем заказ.
+         */
+        await fetch(
+          APPS_SCRIPT_URL,
+          {
+
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "text/plain;charset=utf-8"
+            },
+
+            body:
+              JSON.stringify(
+                order
+              ),
+
+            mode:
+              "no-cors"
+
+          }
+        );
+
+
+        const modal =
+          document.getElementById(
+            "modal"
+          );
+
+
+        if (modal) {
+
+          modal.classList.add(
+            "hidden"
+          );
+        }
+
+
+        Object.keys(cart)
+          .forEach(
+            k =>
+              delete cart[k]
+          );
+
+
+        render();
+
+
+        alert(
+          "Замовлення успішно відправлено! Ми зв’яжемося з вами для підтвердження."
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          error
+        );
+
+
+        alert(
+          "Не вдалося відправити замовлення. Спробуйте ще раз."
+        );
+
+
+      } finally {
+
+        sendButton.disabled =
+          false;
+
+
+        sendButton.textContent =
+          "Підтвердити замовлення";
+
+      }
+
+    };
+}
+
+
+/**
+ * Приветствие пользователя Telegram.
+ */
 if (
   tg?.initDataUnsafe?.user
 ) {
 
-  document.getElementById(
-    "user"
-  ).textContent =
-
-    "Вітаємо, " +
-
-    (
-      tg
-        .initDataUnsafe
-        .user
-        .first_name ||
-      ""
+  const userElement =
+    document.getElementById(
+      "user"
     );
 
+
+  if (userElement) {
+
+    userElement.textContent =
+      "Вітаємо, " +
+      (
+        tg
+          .initDataUnsafe
+          .user
+          .first_name ||
+        ""
+      );
+
+  }
 }
 
 
-/* =========================================================
-   ЗАПУСК
-========================================================= */
-
+/**
+ * Старт приложения.
+ */
 loadProducts();
