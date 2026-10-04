@@ -1,6 +1,5 @@
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyVHhPfXR9SWugxdubgTBA0CH1LIlt6gK4A5e4L9wfueL8RSoSG89FAVjWjGbDXh1FGZg/exec";
-
+  "https://script.google.com/macros/s/AKfycbyVHhPfXR9SWugxdubgTBA0CH1LIlt6gK4A5e4LwfueL8RSoSG89FAVjWjGbDXh1FGZg/exec";
 
 const tg = window.Telegram?.WebApp;
 
@@ -9,68 +8,60 @@ if (tg) {
   tg.expand();
 }
 
-
 let products = [];
-
 const cart = {};
 
+const IN_STOCK_CATEGORY = "Товари в наявності";
 
 const money = n =>
   Number(n || 0).toLocaleString("uk-UA") + " Ft";
 
-
 function escapeHtml(value) {
-
   return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-
 }
-
-
-/* =========================================================
-   TELEGRAM USER
-========================================================= */
 
 function getTelegramUser() {
-
   return tg?.initDataUnsafe?.user || null;
-
 }
 
-
 function getTelegramId() {
-
-  const user =
-    getTelegramUser();
+  const user = getTelegramUser();
 
   return user?.id
     ? String(user.id)
     : "";
-
 }
 
+/* =========================================================
+   PRODUCT TYPE
+========================================================= */
+
+function isInStockProduct(product) {
+  return (
+    String(product?.category || "").trim() ===
+    IN_STOCK_CATEGORY
+  );
+}
 
 /* =========================================================
    CUSTOMER DATA
 ========================================================= */
 
 async function loadCustomerData() {
-
   const nameInput =
     document.getElementById("name");
 
   const phoneInput =
     document.getElementById("phone");
 
-
   if (!nameInput || !phoneInput) {
     return;
   }
-
 
   /*
    * Сначала берём данные,
@@ -78,7 +69,6 @@ async function loadCustomerData() {
    */
 
   try {
-
     const savedName =
       localStorage.getItem(
         "parasolka_customer_name"
@@ -89,37 +79,28 @@ async function loadCustomerData() {
         "parasolka_customer_phone"
       );
 
-
     if (
       savedName &&
       !nameInput.value
     ) {
-
       nameInput.value =
         savedName;
-
     }
-
 
     if (
       savedPhone &&
       !phoneInput.value
     ) {
-
       phoneInput.value =
         savedPhone;
-
     }
 
   } catch (error) {
-
     console.log(
       "localStorage недоступен",
       error
     );
-
   }
-
 
   /*
    * Затем получаем последние
@@ -129,21 +110,17 @@ async function loadCustomerData() {
   const telegramId =
     getTelegramId();
 
-
   if (!telegramId) {
     return;
   }
 
-
   try {
-
     const url =
       APPS_SCRIPT_URL +
       "?action=customer&telegramId=" +
       encodeURIComponent(
         telegramId
       );
-
 
     const response =
       await fetch(
@@ -154,67 +131,51 @@ async function loadCustomerData() {
         }
       );
 
-
     if (!response.ok) {
       return;
     }
 
-
     const data =
       await response.json();
-
 
     if (
       data &&
       data.found
     ) {
-
       if (
         data.name &&
         !nameInput.value
       ) {
-
         nameInput.value =
           data.name;
-
       }
-
 
       if (
         data.phone &&
         !phoneInput.value
       ) {
-
         phoneInput.value =
           data.phone;
-
       }
-
     }
 
   } catch (error) {
-
     console.error(
       "Ошибка загрузки данных клиента:",
       error
     );
-
   }
-
 }
-
 
 /* =========================================================
    CATALOG
 ========================================================= */
 
 function render() {
-
   const catalog =
     document.getElementById(
       "catalog"
     );
-
 
   /*
    * Запоминаем открытые категории.
@@ -231,21 +192,16 @@ function render() {
       )
     );
 
-
   catalog.innerHTML = "";
 
-
   if (!products.length) {
-
     catalog.innerHTML =
       '<div class="loading">Завантажуємо товари…</div>';
 
     renderCart();
 
     return;
-
   }
-
 
   /*
    * Группировка товаров по категориям.
@@ -262,23 +218,29 @@ function render() {
       )
     ];
 
+  /*
+   * Сначала показываем товары
+   * в наличии.
+   */
+
+  groups.sort((a, b) => {
+    if (a === IN_STOCK_CATEGORY) return -1;
+    if (b === IN_STOCK_CATEGORY) return 1;
+    return 0;
+  });
 
   groups.forEach(
     (cat, index) => {
-
       const details =
         document.createElement(
           "details"
         );
 
-
       details.className =
         "category";
 
-
       details.dataset.category =
         cat;
-
 
       details.open =
         openCategories.has(cat) ||
@@ -287,31 +249,30 @@ function render() {
           index === 0
         );
 
-
       const summary =
         document.createElement(
           "summary"
         );
 
-
-      summary.textContent =
-        cat;
-
+      if (cat === IN_STOCK_CATEGORY) {
+        summary.textContent =
+          "🟢 Товари в наявності — можна забрати зараз";
+      } else {
+        summary.textContent =
+          "📦 " + cat;
+      }
 
       details.appendChild(
         summary
       );
-
 
       const productsWrap =
         document.createElement(
           "div"
         );
 
-
       productsWrap.className =
         "category-products";
-
 
       products
         .filter(
@@ -323,20 +284,16 @@ function render() {
         )
         .forEach(
           p => {
-
             const d =
               document.createElement(
                 "div"
               );
 
-
             d.className =
               "product";
 
-
             const q =
               cart[p.id] || 0;
-
 
             const photo =
               p.photo
@@ -351,7 +308,6 @@ function render() {
                 `
                 : "";
 
-
             const description =
               p.description
                 ? `
@@ -363,9 +319,34 @@ function render() {
                 `
                 : "";
 
+            const productType =
+              isInStockProduct(p)
+                ? `
+                  <div
+                    style="
+                      margin:6px 0;
+                      color:#16803c;
+                      font-size:13px;
+                      font-weight:600;
+                    "
+                  >
+                    🟢 Можна забрати зараз
+                  </div>
+                `
+                : `
+                  <div
+                    style="
+                      margin:6px 0;
+                      color:#8a6500;
+                      font-size:13px;
+                      font-weight:600;
+                    "
+                  >
+                    📦 Попереднє замовлення · знижка 10%
+                  </div>
+                `;
 
             d.innerHTML = `
-
               ${photo}
 
               <h3>
@@ -376,8 +357,9 @@ function render() {
 
               ${description}
 
-              <div class="price">
+              ${productType}
 
+              <div class="price">
                 ${money(
                   p.price
                 )}
@@ -387,7 +369,6 @@ function render() {
                     ? " — немає в наявності"
                     : ""
                 }
-
               </div>
 
               <div class="controls">
@@ -409,11 +390,9 @@ function render() {
                   −
                 </button>
 
-
                 <span class="qty">
                   ${q}
                 </span>
-
 
                 <button
                   ${
@@ -433,42 +412,32 @@ function render() {
                 </button>
 
               </div>
-
             `;
-
 
             productsWrap.appendChild(
               d
             );
-
           }
         );
-
 
       details.appendChild(
         productsWrap
       );
 
-
       catalog.appendChild(
         details
       );
-
     }
   );
 
-
   renderCart();
-
 }
-
 
 /* =========================================================
    CART
 ========================================================= */
 
 function change(id, delta) {
-
   const product =
     products.find(
       p =>
@@ -476,16 +445,12 @@ function change(id, delta) {
         String(id)
     );
 
-
   if (
     !product ||
     !product.available
   ) {
-
     return;
-
   }
-
 
   cart[id] =
     Math.max(
@@ -493,148 +458,396 @@ function change(id, delta) {
       (cart[id] || 0) + delta
     );
 
-
   if (cart[id] === 0) {
-
     delete cart[id];
-
   }
 
-
   render();
-
 }
 
+/* =========================================================
+   CART CALCULATION
+========================================================= */
 
-function renderCart() {
-
-  const el =
-    document.getElementById(
-      "cartItems"
-    );
-
-
+function getCartCalculation() {
   const selected =
     products.filter(
       p =>
         cart[p.id]
     );
 
+  const inStockItems =
+    selected.filter(
+      p =>
+        isInStockProduct(p)
+    );
 
-  el.innerHTML =
-    selected.length
+  const preorderItems =
+    selected.filter(
+      p =>
+        !isInStockProduct(p)
+    );
 
-      ? selected
-          .map(
-            p => `
-
-              <div class="cartrow">
-
-                <span>
-
-                  ${escapeHtml(
-                    p.name
-                  )}
-
-                  ×
-
-                  ${cart[p.id]}
-
-                </span>
-
-
-                <span>
-
-                  ${money(
-                    p.price *
-                    cart[p.id]
-                  )}
-
-                </span>
-
-              </div>
-
-            `
-          )
-          .join("")
-
-      : "Кошик поки порожній";
-
-
-  const subtotal =
-    selected.reduce(
-      (s, p) =>
-        s +
+  const inStockSubtotal =
+    inStockItems.reduce(
+      (sum, p) =>
+        sum +
         p.price *
-        cart[p.id],
+          cart[p.id],
       0
     );
 
+  const preorderSubtotal =
+    preorderItems.reduce(
+      (sum, p) =>
+        sum +
+        p.price *
+          cart[p.id],
+      0
+    );
 
   const onlineDiscount =
-    subtotal * 0.10;
+    preorderSubtotal * 0.10;
 
-
-  const finalTotal =
-    subtotal -
+  const total =
+    inStockSubtotal +
+    preorderSubtotal -
     onlineDiscount;
 
-
   const parasolkaAmount =
-    finalTotal * 0.20;
+    total * 0.20;
 
+  return {
+    selected,
+    inStockItems,
+    preorderItems,
+    inStockSubtotal,
+    preorderSubtotal,
+    onlineDiscount,
+    total,
+    parasolkaAmount
+  };
+}
+
+/* =========================================================
+   CART DISPLAY
+========================================================= */
+
+function renderCart() {
+  const el =
+    document.getElementById(
+      "cartItems"
+    );
+
+  const calculation =
+    getCartCalculation();
+
+  const {
+    inStockItems,
+    preorderItems,
+    inStockSubtotal,
+    preorderSubtotal,
+    onlineDiscount,
+    total,
+    parasolkaAmount
+  } = calculation;
+
+  if (
+    !inStockItems.length &&
+    !preorderItems.length
+  ) {
+    el.innerHTML =
+      "Кошик поки порожній";
+  } else {
+    let html = "";
+
+    /*
+     * Товари в наявності
+     */
+
+    if (inStockItems.length) {
+      html += `
+        <div
+          style="
+            margin-bottom:16px;
+            padding:12px;
+            border:2px solid #b7e4c7;
+            background:#f2fff6;
+            border-radius:12px;
+          "
+        >
+          <div
+            style="
+              font-weight:700;
+              color:#16803c;
+              margin-bottom:8px;
+            "
+          >
+            🟢 Товари в наявності
+          </div>
+
+          <div
+            style="
+              font-size:13px;
+              color:#555;
+              margin-bottom:8px;
+            "
+          >
+            Можна забрати зараз · без знижки
+          </div>
+      `;
+
+      inStockItems.forEach(
+        p => {
+          html += `
+            <div class="cartrow">
+              <span>
+                ${escapeHtml(
+                  p.name
+                )}
+                ×
+                ${cart[p.id]}
+              </span>
+
+              <span>
+                ${money(
+                  p.price *
+                    cart[p.id]
+                )}
+              </span>
+            </div>
+          `;
+        }
+      );
+
+      html += `
+          <div
+            style="
+              margin-top:10px;
+              padding-top:8px;
+              border-top:1px solid #cfe8d7;
+              text-align:right;
+              font-weight:700;
+            "
+          >
+            Разом:
+            ${money(
+              inStockSubtotal
+            )}
+          </div>
+        </div>
+      `;
+    }
+
+    /*
+     * Предварительный заказ
+     */
+
+    if (preorderItems.length) {
+      html += `
+        <div
+          style="
+            margin-bottom:16px;
+            padding:12px;
+            border:2px solid #f0df9c;
+            background:#fffdf2;
+            border-radius:12px;
+          "
+        >
+          <div
+            style="
+              font-weight:700;
+              color:#806000;
+              margin-bottom:8px;
+            "
+          >
+            📦 Попереднє замовлення
+          </div>
+
+          <div
+            style="
+              font-size:13px;
+              color:#555;
+              margin-bottom:8px;
+            "
+          >
+            Потрібно замовляти заздалегідь · знижка 10%
+          </div>
+      `;
+
+      preorderItems.forEach(
+        p => {
+          html += `
+            <div class="cartrow">
+              <span>
+                ${escapeHtml(
+                  p.name
+                )}
+                ×
+                ${cart[p.id]}
+              </span>
+
+              <span>
+                ${money(
+                  p.price *
+                    cart[p.id]
+                )}
+              </span>
+            </div>
+          `;
+        }
+      );
+
+      html += `
+          <div
+            style="
+              margin-top:10px;
+              padding-top:8px;
+              border-top:1px solid #eee0a8;
+            "
+          >
+            <div
+              style="
+                display:flex;
+                justify-content:space-between;
+              "
+            >
+              <span>
+                Сума:
+              </span>
+
+              <strong>
+                ${money(
+                  preorderSubtotal
+                )}
+              </strong>
+            </div>
+
+            <div
+              style="
+                display:flex;
+                justify-content:space-between;
+                color:#b33;
+                margin-top:4px;
+              "
+            >
+              <span>
+                Знижка 10%:
+              </span>
+
+              <strong>
+                −${money(
+                  onlineDiscount
+                )}
+              </strong>
+            </div>
+
+            <div
+              style="
+                display:flex;
+                justify-content:space-between;
+                margin-top:4px;
+                font-weight:700;
+              "
+            >
+              <span>
+                Після знижки:
+              </span>
+
+              <strong>
+                ${money(
+                  preorderSubtotal -
+                    onlineDiscount
+                )}
+              </strong>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    el.innerHTML =
+      html;
+  }
+
+  /*
+   * Общий итог
+   */
 
   document.getElementById(
     "total"
   ).innerHTML = `
 
-    <div class="summary-line">
+    ${
+      inStockItems.length
+        ? `
+          <div class="summary-line">
+            <span>
+              Товари в наявності:
+            </span>
 
+            <strong>
+              ${money(
+                inStockSubtotal
+              )}
+            </strong>
+          </div>
+        `
+        : ""
+    }
+
+    ${
+      preorderItems.length
+        ? `
+          <div class="summary-line">
+            <span>
+              Попереднє замовлення:
+            </span>
+
+            <strong>
+              ${money(
+                preorderSubtotal
+              )}
+            </strong>
+          </div>
+
+          <div class="summary-line discount">
+            <span>
+              Знижка 10%:
+            </span>
+
+            <strong>
+              −${money(
+                onlineDiscount
+              )}
+            </strong>
+          </div>
+        `
+        : ""
+    }
+
+    <div
+      class="summary-line final"
+      style="
+        margin-top:8px;
+        padding-top:8px;
+        border-top:2px solid #ddd;
+      "
+    >
       <span>
-        Сума:
+        До сплати:
       </span>
 
       <strong>
         ${money(
-          subtotal
+          total
         )}
       </strong>
-
     </div>
 
-
-    <div class="summary-line discount">
-
-      <span>
-        Знижка за онлайн-замовлення (10%):
-      </span>
-
-      <strong>
-        −${money(
-          onlineDiscount
-        )}
-      </strong>
-
-    </div>
-
-
-    <div class="summary-line final">
-
-      <span>
-        До сплати після знижки:
-      </span>
-
-      <strong>
-        ${money(
-          finalTotal
-        )}
-      </strong>
-
-    </div>
-
-
-    <div class="summary-line donation">
-
+    <div
+      class="summary-line donation"
+    >
       <span>
         20% на користь Парасольки:
       </span>
@@ -644,38 +857,30 @@ function renderCart() {
           parasolkaAmount
         )}
       </strong>
-
     </div>
 
   `;
 
-
   document.getElementById(
     "checkout"
   ).disabled =
-    subtotal === 0;
-
+    calculation.selected.length === 0;
 }
-
 
 /* =========================================================
    LOAD PRODUCTS
 ========================================================= */
 
 async function loadProducts() {
-
   const catalog =
     document.getElementById(
       "catalog"
     );
 
-
   catalog.innerHTML =
     '<div class="loading">Завантажуємо товари…</div>';
 
-
   try {
-
     const response =
       await fetch(
         APPS_SCRIPT_URL,
@@ -685,34 +890,25 @@ async function loadProducts() {
         }
       );
 
-
     if (!response.ok) {
-
       throw new Error(
         "HTTP " +
         response.status
       );
-
     }
-
 
     const data =
       await response.json();
 
-
     if (!Array.isArray(data)) {
-
       throw new Error(
         "Невірний формат каталогу"
       );
-
     }
-
 
     products =
       data.map(
         p => ({
-
           ...p,
 
           price:
@@ -730,72 +926,54 @@ async function loadProducts() {
               p.available
             ).toLowerCase() ===
               "да"
-
         })
       );
-
 
     render();
 
   } catch (error) {
-
     console.error(
       error
     );
 
-
     catalog.innerHTML = `
-
       <div class="loading">
-
         Не вдалося завантажити товари.
 
         <br><br>
 
         Перевірте підключення до інтернету
         та спробуйте відкрити магазин ще раз.
-
       </div>
-
     `;
 
-
     renderCart();
-
   }
-
 }
-
 
 /* =========================================================
    MY ORDERS MODAL
 ========================================================= */
 
 function createOrdersModal() {
-
   let modal =
     document.getElementById(
       "ordersModal"
     );
 
-
   if (modal) {
     return modal;
   }
-
 
   modal =
     document.createElement(
       "div"
     );
 
-
   modal.id =
     "ordersModal";
 
-
   modal.style.cssText = `
-
     position:fixed;
     inset:0;
     z-index:9999;
@@ -804,12 +982,9 @@ function createOrdersModal() {
     overflow:auto;
     padding:20px;
     box-sizing:border-box;
-
   `;
 
-
   modal.innerHTML = `
-
     <div
       style="
         max-width:700px;
@@ -836,7 +1011,6 @@ function createOrdersModal() {
           📋 Мої замовлення
         </h2>
 
-
         <button
           id="closeOrders"
           type="button"
@@ -854,79 +1028,51 @@ function createOrdersModal() {
 
       </div>
 
-
       <div id="ordersContent">
-
         Завантажуємо замовлення…
-
       </div>
 
     </div>
-
   `;
-
 
   document.body.appendChild(
     modal
   );
 
-
   document.getElementById(
     "closeOrders"
   ).onclick =
     () => {
-
       modal.style.display =
         "none";
-
     };
-
 
   modal.addEventListener(
     "click",
     event => {
-
       if (
         event.target === modal
       ) {
-
         modal.style.display =
           "none";
-
       }
-
     }
   );
 
-
   return modal;
-
 }
-
 
 /* =========================================================
    FIND EXISTING MY ORDERS BUTTON
 ========================================================= */
 
 function setupMyOrdersButton() {
-
-  /*
-   * Сначала ищем кнопку по ID.
-   */
-
   let button =
     document.getElementById(
       "myOrders"
     );
 
-
-  /*
-   * Если ID нет — ищем существующую
-   * кнопку по её тексту.
-   */
-
   if (!button) {
-
     button =
       [
         ...document.querySelectorAll(
@@ -939,68 +1085,44 @@ function setupMyOrdersButton() {
               "Мої замовлення"
             )
       );
-
   }
 
-
-  /*
-   * Если нашли — назначаем ей ID
-   * и обработчик.
-   */
-
   if (button) {
-
     button.id =
       "myOrders";
 
-
     button.onclick =
       loadMyOrders;
-
   }
-
 
   /*
    * ВАЖНО:
-   *
    * Мы НЕ создаём новую кнопку.
-   *
-   * Поэтому второй кнопки больше
-   * не появится.
    */
-
 }
-
 
 /* =========================================================
    DATE
 ========================================================= */
 
 function formatOrderDate(date) {
-
   if (!date) {
     return "";
   }
 
-
   try {
-
     const d =
       new Date(date);
-
 
     if (
       Number.isNaN(
         d.getTime()
       )
     ) {
-
       return String(
         date
       );
-
     }
-
 
     return d.toLocaleString(
       "uk-UA",
@@ -1014,15 +1136,11 @@ function formatOrderDate(date) {
     );
 
   } catch {
-
     return String(
       date
     );
-
   }
-
 }
-
 
 /* =========================================================
    RENDER ORDERS
@@ -1031,17 +1149,13 @@ function formatOrderDate(date) {
 function renderOrders(
   orders
 ) {
-
   const content =
     document.getElementById(
       "ordersContent"
     );
 
-
   if (!orders.length) {
-
     content.innerHTML = `
-
       <div
         style="
           text-align:center;
@@ -1049,105 +1163,171 @@ function renderOrders(
           color:#666;
         "
       >
-
         У вас ще немає замовлень.
-
       </div>
-
     `;
 
     return;
-
   }
-
 
   content.innerHTML =
     orders
       .map(
         order => {
 
-          const itemsHtml =
-            order.items
-              .map(
-                item => `
+          const inStockItems =
+            order.items.filter(
+              item =>
+                String(
+                  item.category ||
+                  ""
+                ).trim() ===
+                IN_STOCK_CATEGORY
+            );
 
-                  <div
-                    style="
-                      padding:8px 0;
-                      border-bottom:1px solid #eee;
-                    "
-                  >
+          const preorderItems =
+            order.items.filter(
+              item =>
+                String(
+                  item.category ||
+                  ""
+                ).trim() !==
+                IN_STOCK_CATEGORY
+            );
 
+          const renderOrderItems =
+            items =>
+              items
+                .map(
+                  item => `
                     <div
                       style="
-                        font-weight:600;
+                        padding:8px 0;
+                        border-bottom:1px solid #eee;
                       "
                     >
 
-                      ${escapeHtml(
-                        item.name
-                      )}
-
-                    </div>
-
-
-                    ${
-                      item.category
-                        ? `
-
-                          <div
-                            style="
-                              color:#777;
-                              font-size:13px;
-                            "
-                          >
-
-                            ${escapeHtml(
-                              item.category
-                            )}
-
-                          </div>
-
-                        `
-                        : ""
-                    }
-
-
-                    <div
-                      style="
-                        margin-top:3px;
-                      "
-                    >
-
-                      ${item.quantity}
-
-                      ×
-
-                      ${money(
-                        item.price
-                      )}
-
-                      =
-
-                      <b>
-
-                        ${money(
-                          item.sum
+                      <div
+                        style="
+                          font-weight:600;
+                        "
+                      >
+                        ${escapeHtml(
+                          item.name
                         )}
+                      </div>
 
-                      </b>
+                      <div
+                        style="
+                          margin-top:3px;
+                          font-size:14px;
+                        "
+                      >
+                        ${item.quantity}
+                        ×
+                        ${money(
+                          item.price
+                        )}
+                        =
+                        <b>
+                          ${money(
+                            item.sum
+                          )}
+                        </b>
+                      </div>
 
                     </div>
+                  `
+                )
+                .join("");
 
-                  </div>
+          let itemsHtml = "";
 
-                `
-              )
-              .join("");
+          if (
+            inStockItems.length
+          ) {
+            itemsHtml += `
+              <div
+                style="
+                  margin-top:12px;
+                  padding:12px;
+                  background:#f2fff6;
+                  border:1px solid #b7e4c7;
+                  border-radius:12px;
+                "
+              >
 
+                <div
+                  style="
+                    font-weight:700;
+                    color:#16803c;
+                    margin-bottom:5px;
+                  "
+                >
+                  🟢 Товари в наявності
+                </div>
+
+                <div
+                  style="
+                    color:#555;
+                    font-size:13px;
+                    margin-bottom:5px;
+                  "
+                >
+                  Можна забрати зараз
+                </div>
+
+                ${renderOrderItems(
+                  inStockItems
+                )}
+
+              </div>
+            `;
+          }
+
+          if (
+            preorderItems.length
+          ) {
+            itemsHtml += `
+              <div
+                style="
+                  margin-top:12px;
+                  padding:12px;
+                  background:#fffdf2;
+                  border:1px solid #f0df9c;
+                  border-radius:12px;
+                "
+              >
+
+                <div
+                  style="
+                    font-weight:700;
+                    color:#806000;
+                    margin-bottom:5px;
+                  "
+                >
+                  📦 Попереднє замовлення
+                </div>
+
+                <div
+                  style="
+                    color:#555;
+                    font-size:13px;
+                    margin-bottom:5px;
+                  "
+                >
+                  Потрібно замовляти заздалегідь
+                </div>
+
+                ${renderOrderItems(
+                  preorderItems
+                )}
+
+              </div>
+            `;
+          }
 
           return `
-
             <div
               style="
                 border:1px solid #ddd;
@@ -1167,14 +1347,11 @@ function renderOrders(
               >
 
                 <strong>
-
                   Замовлення №
                   ${escapeHtml(
                     order.orderNumber
                   )}
-
                 </strong>
-
 
                 <span
                   style="
@@ -1182,15 +1359,12 @@ function renderOrders(
                     font-size:13px;
                   "
                 >
-
                   ${formatOrderDate(
                     order.date
                   )}
-
                 </span>
 
               </div>
-
 
               <div
                 style="
@@ -1198,23 +1372,17 @@ function renderOrders(
                   color:#555;
                 "
               >
-
                 Статус:
 
                 <b>
-
                   ${escapeHtml(
                     order.status ||
                     "—"
                   )}
-
                 </b>
-
               </div>
 
-
               ${itemsHtml}
-
 
               <div
                 style="
@@ -1224,34 +1392,26 @@ function renderOrders(
               >
 
                 <div>
-
-                  Сума:
+                  Сума до знижки:
 
                   <b>
-
                     ${money(
                       order.subtotal
                     )}
-
                   </b>
-
                 </div>
-
 
                 <div
                   style="
                     color:#a33;
                   "
                 >
-
                   Знижка 10%:
 
                   −${money(
                     order.onlineDiscount
                   )}
-
                 </div>
-
 
                 <div
                   style="
@@ -1259,19 +1419,14 @@ function renderOrders(
                     margin-top:4px;
                   "
                 >
-
                   До сплати:
 
                   <b>
-
                     ${money(
                       order.total
                     )}
-
                   </b>
-
                 </div>
-
 
                 <div
                   style="
@@ -1279,22 +1434,18 @@ function renderOrders(
                     font-size:14px;
                   "
                 >
-
                   20% на користь Парасольки:
 
                   ${money(
                     order.parasolkaAmount
                   )}
-
                 </div>
 
               </div>
 
-
               ${
                 order.comment
                   ? `
-
                     <div
                       style="
                         margin-top:10px;
@@ -1314,44 +1465,34 @@ function renderOrders(
                       )}
 
                     </div>
-
                   `
                   : ""
               }
 
             </div>
-
           `;
-
         }
       )
       .join("");
-
 }
-
 
 /* =========================================================
    LOAD MY ORDERS
 ========================================================= */
 
 async function loadMyOrders() {
-
   const modal =
     createOrdersModal();
-
 
   const content =
     document.getElementById(
       "ordersContent"
     );
 
-
   modal.style.display =
     "block";
 
-
   content.innerHTML = `
-
     <div
       style="
         text-align:center;
@@ -1359,22 +1500,15 @@ async function loadMyOrders() {
         color:#666;
       "
     >
-
       Завантажуємо замовлення…
-
     </div>
-
   `;
-
 
   const telegramId =
     getTelegramId();
 
-
   if (!telegramId) {
-
     content.innerHTML = `
-
       <div
         style="
           text-align:center;
@@ -1382,32 +1516,24 @@ async function loadMyOrders() {
           color:#b00;
         "
       >
-
-        Не вдалося визначити
-        Telegram ID.
+        Не вдалося визначити Telegram ID.
 
         <br><br>
 
         Відкрийте магазин через Telegram.
-
       </div>
-
     `;
 
     return;
-
   }
 
-
   try {
-
     const url =
       APPS_SCRIPT_URL +
       "?action=orders&telegramId=" +
       encodeURIComponent(
         telegramId
       );
-
 
     const response =
       await fetch(
@@ -1418,44 +1544,33 @@ async function loadMyOrders() {
         }
       );
 
-
     if (!response.ok) {
-
       throw new Error(
         "HTTP " +
         response.status
       );
-
     }
-
 
     const orders =
       await response.json();
 
-
     if (!Array.isArray(orders)) {
-
       throw new Error(
         "Невірний формат замовлень"
       );
-
     }
-
 
     renderOrders(
       orders
     );
 
   } catch (error) {
-
     console.error(
       "Помилка завантаження замовлень:",
       error
     );
 
-
     content.innerHTML = `
-
       <div
         style="
           text-align:center;
@@ -1463,22 +1578,16 @@ async function loadMyOrders() {
           color:#b00;
         "
       >
-
         Не вдалося завантажити
         замовлення.
 
         <br><br>
 
         Спробуйте ще раз.
-
       </div>
-
     `;
-
   }
-
 }
-
 
 /* =========================================================
    CHECKOUT
@@ -1495,11 +1604,8 @@ document.getElementById(
       "hidden"
     );
 
-
     await loadCustomerData();
-
   };
-
 
 document.getElementById(
   "close"
@@ -1511,9 +1617,7 @@ document.getElementById(
     ).classList.add(
       "hidden"
     );
-
   };
-
 
 /* =========================================================
    SEND ORDER
@@ -1529,88 +1633,69 @@ document.getElementById(
         "name"
       ).value.trim();
 
-
     const phone =
       document.getElementById(
         "phone"
       ).value.trim();
 
-
     if (
       !name ||
       !phone
     ) {
-
       alert(
         "Вкажіть ім’я та телефон"
       );
 
       return;
-
     }
 
+    const calculation =
+      getCartCalculation();
+
+    const {
+      selected,
+      inStockSubtotal,
+      preorderSubtotal,
+      onlineDiscount,
+      total,
+      parasolkaAmount
+    } = calculation;
 
     const items =
-      products
-        .filter(
-          p =>
-            cart[p.id]
-        )
-        .map(
-          p => ({
+      selected.map(
+        p => ({
+          id:
+            p.id,
 
-            id:
-              p.id,
+          name:
+            p.name,
 
-            name:
-              p.name,
+          category:
+            p.category || "Інше",
 
-            quantity:
-              cart[p.id],
+          quantity:
+            cart[p.id],
 
-            price:
-              p.price
-
-          })
-        );
-
+          price:
+            p.price
+        })
+      );
 
     if (!items.length) {
-
       alert(
         "Кошик порожній"
       );
 
       return;
-
     }
 
-
-    const subtotal =
-      items.reduce(
-        (s, p) =>
-          s +
-          p.price *
-          p.quantity,
-        0
-      );
-
-
-    const onlineDiscount =
-      subtotal * 0.10;
-
-
-    const total =
-      subtotal -
-      onlineDiscount;
-
-
-    const parasolkaAmount =
-      total * 0.20;
-
+    /*
+     * ВАЖНО:
+     * Эти значения теперь разделены
+     * по типу товара.
+     */
 
     const order = {
-
       name,
 
       phone,
@@ -1622,7 +1707,13 @@ document.getElementById(
 
       items,
 
-      subtotal,
+      subtotal:
+        inStockSubtotal +
+        preorderSubtotal,
+
+      inStockSubtotal,
+
+      preorderSubtotal,
 
       onlineDiscount,
 
@@ -1632,9 +1723,7 @@ document.getElementById(
 
       telegramUser:
         getTelegramUser()
-
     };
-
 
     /*
      * Сохраняем имя и телефон
@@ -1642,12 +1731,10 @@ document.getElementById(
      */
 
     try {
-
       localStorage.setItem(
         "parasolka_customer_name",
         name
       );
-
 
       localStorage.setItem(
         "parasolka_customer_phone",
@@ -1655,43 +1742,34 @@ document.getElementById(
       );
 
     } catch (error) {
-
       console.log(
         "Не удалось сохранить данные",
         error
       );
-
     }
-
 
     const sendButton =
       document.getElementById(
         "send"
       );
 
-
     sendButton.disabled =
       true;
 
-
     sendButton.textContent =
       "Відправляємо…";
-
 
     try {
 
       await fetch(
         APPS_SCRIPT_URL,
         {
-
           method:
             "POST",
 
           headers: {
-
             "Content-Type":
               "text/plain;charset=utf-8"
-
           },
 
           body:
@@ -1701,17 +1779,14 @@ document.getElementById(
 
           mode:
             "no-cors"
-
         }
       );
-
 
       document.getElementById(
         "modal"
       ).classList.add(
         "hidden"
       );
-
 
       Object.keys(
         cart
@@ -1720,14 +1795,11 @@ document.getElementById(
           delete cart[k]
       );
 
-
       render();
-
 
       alert(
         "Замовлення відправлено! Ми зв’яжемося з вами для підтвердження."
       );
-
 
     } catch (error) {
 
@@ -1735,25 +1807,19 @@ document.getElementById(
         error
       );
 
-
       alert(
         "Не вдалося відправити замовлення. Спробуйте ще раз."
       );
-
 
     } finally {
 
       sendButton.disabled =
         false;
 
-
       sendButton.textContent =
         "Підтвердити замовлення";
-
     }
-
   };
-
 
 /* =========================================================
    USER GREETING
@@ -1762,7 +1828,6 @@ document.getElementById(
 if (
   tg?.initDataUnsafe?.user
 ) {
-
   document.getElementById(
     "user"
   ).textContent =
@@ -1772,9 +1837,7 @@ if (
         .first_name ||
       ""
     );
-
 }
-
 
 /* =========================================================
    START
