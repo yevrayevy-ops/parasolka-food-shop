@@ -437,12 +437,14 @@ function render() {
 ========================================================= */
 
 function change(id, delta) {
+
   const product =
     products.find(
       p =>
         String(p.id) ===
         String(id)
     );
+
 
   if (
     !product ||
@@ -451,15 +453,57 @@ function change(id, delta) {
     return;
   }
 
+
+  const currentQuantity =
+    cart[id] || 0;
+
+
+  const newQuantity =
+    currentQuantity + delta;
+
+
+  /*
+   * Для товара из стока
+   * нельзя заказать больше,
+   * чем есть на складе.
+   */
+  if (
+    product.category ===
+    "Товари в наявності" &&
+    delta > 0 &&
+    newQuantity >
+      Number(
+        product.stockQuantity || 0
+      )
+  ) {
+
+    alert(
+      "Доступно лише " +
+      Number(
+        product.stockQuantity || 0
+      ) +
+      " шт."
+    );
+
+    return;
+  }
+
+
   cart[id] =
     Math.max(
       0,
-      (cart[id] || 0) + delta
+      newQuantity
     );
 
-  if (cart[id] === 0) {
+
+  if (
+    cart[id] === 0
+  ) {
+
     delete cart[id];
+
   }
+
 
   render();
 }
