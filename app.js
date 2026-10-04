@@ -773,93 +773,30 @@ function renderCart() {
    * Общий итог
    */
 
-  document.getElementById(
-    "total"
-  ).innerHTML = `
+  document.getElementById("total").innerHTML = `
+  <div
+    class="summary-line final"
+    style="
+      margin-top:8px;
+      padding-top:8px;
+      border-top:2px solid #ddd;
+    "
+  >
+    <span>До сплати:</span>
+    <strong>${money(total)}</strong>
+  </div>
 
-    ${
-      inStockItems.length
-        ? `
-          <div class="summary-line">
-            <span>
-              Товари в наявності:
-            </span>
-
-            <strong>
-              ${money(
-                inStockSubtotal
-              )}
-            </strong>
-          </div>
-        `
-        : ""
-    }
-
-    ${
-      preorderItems.length
-        ? `
-          <div class="summary-line">
-            <span>
-              Попереднє замовлення:
-            </span>
-
-            <strong>
-              ${money(
-                preorderSubtotal
-              )}
-            </strong>
-          </div>
-
-          <div class="summary-line discount">
-            <span>
-              Знижка 10%:
-            </span>
-
-            <strong>
-              −${money(
-                onlineDiscount
-              )}
-            </strong>
-          </div>
-        `
-        : ""
-    }
-
-    <div
-      class="summary-line final"
-      style="
-        margin-top:8px;
-        padding-top:8px;
-        border-top:2px solid #ddd;
-      "
-    >
-      <span>
-        До сплати:
-      </span>
-
-      <strong>
-        ${money(
-          total
-        )}
-      </strong>
-    </div>
-
-    <div
-      class="summary-line donation"
-    >
-      <span>
-        20% на користь Парасольки:
-      </span>
-
-      <strong>
-        ${money(
-          parasolkaAmount
-        )}
-      </strong>
-    </div>
-
-  `;
-
+  <div
+    class="summary-line donation"
+    style="
+      margin-top:8px;
+      padding-top:8px;
+    "
+  >
+    <span>20% на користь Парасольки:</span>
+    <strong>${money(parasolkaAmount)}</strong>
+  </div>
+`;
   document.getElementById(
     "checkout"
   ).disabled =
