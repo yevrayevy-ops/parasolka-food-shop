@@ -1,5 +1,4 @@
-const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbyVHhPfXR9SWugxdubgTBA0CH1LIlt6gK4A5e4LwfueL8RSoSG89FAVjWjGbDXh1FGZg/exec";
+const APPS_SCRIPT_URL = "/api/google";
 
 const tg = window.Telegram?.WebApp;
 
