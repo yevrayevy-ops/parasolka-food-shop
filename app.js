@@ -335,16 +335,7 @@ const photo = photoUrl
     >
   `
   : "";
-                ? `
-                  <img
-                    src="${escapeHtml(
-                      p.photo
-                    )}"
-                    alt=""
-                    class="product-photo"
-                  >
-                `
-                : "";
+               
 
             const description =
               p.description
