@@ -330,8 +330,7 @@ function render() {
       >
     `
     : "";
-                `
-                : "";
+  
 
             const productType =
               isInStockProduct(p)
