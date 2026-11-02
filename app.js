@@ -1363,7 +1363,19 @@ function renderOrders(
               </div>
 
               ${itemsHtml}
-
+${(() => {
+  const isDelivery = order.deliveryMethod === "delivery";
+  return `
+    <div style="margin-top:12px;padding:10px 12px;background:#f7f8fa;border-radius:10px;line-height:1.6;">
+      <div><b>Спосіб отримання:</b> ${isDelivery ? "Доставка" : "Самовивіз"}</div>
+      ${isDelivery ? `
+        <div><b>Район:</b> ${escapeHtml(order.district || "—")}</div>
+        <div><b>Адреса доставки:</b> ${escapeHtml(order.address || "—")}</div>
+        <div><b>Вартість доставки:</b> ${money(order.deliveryFee || 2000)}</div>
+      ` : ""}
+    </div>
+  `;
+})()}
               <div
                 style="
                   margin-top:12px;
