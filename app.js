@@ -320,31 +320,16 @@ function render() {
             const q =
               cart[p.id] || 0;
 
-           const photoUrl = getProductPhotoUrl(p.photo);
-
-const photo = photoUrl
-  ? `
-    <img
-      src="${escapeHtml(photoUrl)}"
-      alt=""
-      class="product-photo"
-      loading="lazy"
-      decoding="async"
-      referrerpolicy="no-referrer"
-      onerror="this.onerror=null;this.style.display='none';"
-    >
-  `
-  : "";
-               
-
-            const description =
-              p.description
-                ? `
-                  <div class="description">
-                    ${escapeHtml(
-                      p.description
-                    )}
-                  </div>
+    const photo =
+  p.photo
+    ? `
+      <img
+        src="${escapeHtml(p.photo)}"
+        alt=""
+        class="product-photo"
+      >
+    `
+    : "";
                 `
                 : "";
 
