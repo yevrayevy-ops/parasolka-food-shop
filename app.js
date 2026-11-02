@@ -331,7 +331,14 @@ function render() {
     `
     : "";
   
-
+const description =
+  p.description
+    ? `
+      <div class="description">
+        ${escapeHtml(p.description)}
+      </div>
+    `
+    : "";
             const productType =
               isInStockProduct(p)
                 ? `
