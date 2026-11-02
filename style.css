@@ -52,3 +52,25 @@
   font-size: .92em;
   opacity: .85;
 }
+
+/* Fix: keep cart text readable on the light stock/preorder cards,
+   regardless of Telegram's dark/light theme text color. */
+#cart .cartrow,
+#cart .cartrow span,
+#cart .total,
+#cart #total,
+#cart .summary-line {
+  color: #222 !important;
+}
+#cart .cartrow {
+  color: #222 !important;
+}
+
+
+/* Delivery checkout fields */
+.box select { width:100%; margin-top:5px; padding:11px; border:1px solid #bbb; border-radius:9px; background:var(--tg-theme-secondary-bg-color,#fff); color:inherit; font:inherit; }
+.delivery-fields { margin-top:10px; padding:12px; border:1px solid #b7e4c7; border-radius:12px; }
+.delivery-note { font-size:12px; line-height:1.4; opacity:.8; margin:8px 0 0; }
+.checkout-total { margin-top:14px; padding:12px; border-radius:10px; background:var(--tg-theme-secondary-bg-color,#f4f4f5); }
+.checkout-total-line { display:flex; justify-content:space-between; gap:12px; margin:5px 0; }
+.checkout-grand-total { border-top:1px solid #aaa; padding-top:9px; margin-top:9px; font-size:1.08em; font-weight:700; }

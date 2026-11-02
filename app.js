@@ -1584,8 +1584,34 @@ document.getElementById(
       "hidden"
     );
 
+    updateCheckoutDeliveryUI();
     await loadCustomerData();
   };
+
+// Delivery choice and live checkout total.
+const fulfillmentSelect = document.getElementById("fulfillment");
+const deliveryFields = document.getElementById("deliveryFields");
+const deliveryDistrictSelect = document.getElementById("deliveryDistrict");
+const deliveryAddressInput = document.getElementById("deliveryAddress");
+const checkoutTotal = document.getElementById("checkoutTotal");
+const DELIVERY_FEE = 2000;
+
+function updateCheckoutDeliveryUI() {
+  if (!fulfillmentSelect) return;
+  const isDelivery = fulfillmentSelect.value === "delivery";
+  deliveryFields.classList.toggle("hidden", !isDelivery);
+  deliveryDistrictSelect.required = isDelivery;
+  deliveryAddressInput.required = isDelivery;
+  const calculation = getCartCalculation();
+  const finalTotal = calculation.total + (isDelivery ? DELIVERY_FEE : 0);
+  checkoutTotal.innerHTML = `
+    <div class="checkout-total-line"><span>Товари з урахуванням знижки:</span><strong>${money(calculation.total)}</strong></div>
+    <div class="checkout-total-line"><span>Доставка:</span><strong>${isDelivery ? money(DELIVERY_FEE) : "0 Ft"}</strong></div>
+    <div class="checkout-total-line checkout-grand-total"><span>До сплати:</span><strong>${money(finalTotal)}</strong></div>
+  `;
+}
+
+fulfillmentSelect.addEventListener("change", updateCheckoutDeliveryUI);
 
 document.getElementById(
   "close"
@@ -1627,6 +1653,28 @@ document.getElementById(
       );
 
       return;
+    }
+
+    const fulfillment =
+      document.getElementById("fulfillment").value === "delivery"
+        ? "delivery"
+        : "pickup";
+    const deliveryDistrict = fulfillment === "delivery"
+      ? document.getElementById("deliveryDistrict").value
+      : "";
+    const deliveryAddress = fulfillment === "delivery"
+      ? document.getElementById("deliveryAddress").value.trim()
+      : "";
+
+    if (fulfillment === "delivery") {
+      if (!["VI", "VII", "VIII", "IX"].includes(deliveryDistrict)) {
+        alert("Доставка доступна лише в районах VI, VII, VIII та IX.");
+        return;
+      }
+      if (!deliveryAddress) {
+        alert("Вкажіть адресу доставки.");
+        return;
+      }
     }
 
     const calculation =
@@ -1697,7 +1745,15 @@ document.getElementById(
 
       onlineDiscount,
 
-      total,
+      fulfillment,
+
+      deliveryDistrict,
+
+      deliveryAddress,
+
+      deliveryFee: fulfillment === "delivery" ? DELIVERY_FEE : 0,
+
+      total: total + (fulfillment === "delivery" ? DELIVERY_FEE : 0),
 
       parasolkaAmount,
 

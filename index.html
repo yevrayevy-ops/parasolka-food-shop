@@ -133,6 +133,38 @@
 
     <label>
 
+      Спосіб отримання
+
+      <select id="fulfillment">
+        <option value="pickup">Самовивіз — безкоштовно</option>
+        <option value="delivery">Доставка — 2 000 Ft</option>
+      </select>
+
+    </label>
+
+    <div id="deliveryFields" class="delivery-fields hidden">
+      <label>
+        Район доставки
+        <select id="deliveryDistrict">
+          <option value="">Оберіть район</option>
+          <option value="VI">VI район</option>
+          <option value="VII">VII район</option>
+          <option value="VIII">VIII район</option>
+          <option value="IX">IX район</option>
+        </select>
+      </label>
+
+      <label>
+        Адреса доставки (вулиця, номер будинку, квартира)
+        <input id="deliveryAddress" placeholder="Наприклад: Király utca 10, 2/5">
+      </label>
+      <p class="delivery-note">Доставка доступна лише в районах VI, VII, VIII та IX Будапешта.</p>
+    </div>
+
+    <div id="checkoutTotal" class="checkout-total" aria-live="polite"></div>
+
+    <label>
+
       Коментар
 
       <textarea
