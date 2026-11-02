@@ -23,7 +23,33 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+function getProductPhotoUrl(photo) {
+  const raw = String(photo ?? "").trim();
 
+  if (!raw) return "";
+
+  try {
+    const url = new URL(raw);
+
+    if (
+      url.hostname === "drive.google.com" ||
+      url.hostname === "www.drive.google.com"
+    ) {
+      const fileId =
+        url.pathname.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)?.[1] ||
+        url.pathname.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1] ||
+        url.searchParams.get("id");
+
+      if (fileId) {
+        return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}`;
+      }
+    }
+  } catch (error) {
+    // Оставляем исходную ссылку, если это не абсолютный URL.
+  }
+
+  return raw;
+}
 function getTelegramUser() {
   return tg?.initDataUnsafe?.user || null;
 }
@@ -294,8 +320,21 @@ function render() {
             const q =
               cart[p.id] || 0;
 
-            const photo =
-              p.photo
+           const photoUrl = getProductPhotoUrl(p.photo);
+
+const photo = photoUrl
+  ? `
+    <img
+      src="${escapeHtml(photoUrl)}"
+      alt=""
+      class="product-photo"
+      loading="lazy"
+      decoding="async"
+      referrerpolicy="no-referrer"
+      onerror="this.onerror=null;this.style.display='none';"
+    >
+  `
+  : "";
                 ? `
                   <img
                     src="${escapeHtml(
