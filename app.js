@@ -362,7 +362,9 @@ const description =
                       font-weight:600;
                     "
                   >
-                    📦 Попереднє замовлення · знижка 10%
+                  📦 Попереднє замовлення · знижка 10%
+<br>
+Доставка протягом максимум 14 робочих днів
                   </div>
                 `;
 
@@ -735,7 +737,9 @@ function renderCart() {
               margin-bottom:8px;
             "
           >
-            Потрібно замовляти заздалегідь · знижка 10%
+           Потрібно замовляти заздалегідь · знижка 10%
+<br>
+Доставка протягом максимум 14 робочих днів
           </div>
       `;
 
@@ -1637,11 +1641,20 @@ function updateCheckoutDeliveryUI() {
   deliveryAddressInput.required = isDelivery;
   const calculation = getCartCalculation();
   const finalTotal = calculation.total + (isDelivery ? DELIVERY_FEE : 0);
+  const preorderNotice =
+  calculation.preorderItems.length
+    ? `<div style="margin-top:10px;padding:10px;background:#fffdf2;border-radius:8px;color:#806000;font-size:13px;">
+         📦 Попереднє замовлення: знижка 10%.
+         Доставка протягом максимум 14 робочих днів.
+       </div>`
+    : "";
   checkoutTotal.innerHTML = `
     <div class="checkout-total-line"><span>Товари з урахуванням знижки:</span><strong>${money(calculation.total)}</strong></div>
     <div class="checkout-total-line"><span>Доставка:</span><strong>${isDelivery ? money(DELIVERY_FEE) : "0 Ft"}</strong></div>
     <div class="checkout-total-line checkout-grand-total"><span>До сплати:</span><strong>${money(finalTotal)}</strong></div>
-  `;
+   ${preorderNotice}
+  `; 
+ 
 }
 
 fulfillmentSelect.addEventListener("change", updateCheckoutDeliveryUI);
