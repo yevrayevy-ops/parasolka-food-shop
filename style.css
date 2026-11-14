@@ -95,3 +95,70 @@
   font-size: 16px;
   min-height: 44px;
 }
+
+/* Fixed light palette: ignore Telegram's dark-theme text/background variables. */
+:root {
+  color-scheme: light;
+  --shop-bg: #f4f4f5;
+  --shop-card: #ffffff;
+  --shop-text: #222222;
+  --shop-muted: #555555;
+  --shop-border: #d5d5d5;
+  --shop-button: #2481cc;
+}
+html, body {
+  background: var(--shop-bg) !important;
+  color: var(--shop-text) !important;
+  color-scheme: light !important;
+}
+header, .box {
+  background: var(--shop-card) !important;
+  color: var(--shop-text) !important;
+}
+.product, .cart, .category, .checkout-total {
+  background: var(--shop-card) !important;
+  color: var(--shop-text) !important;
+}
+.product *, .cart *, .category *, .box *, header * {
+  color: inherit;
+}
+.product h3, .price, .cart h2, .category summary,
+.cartrow, .cartrow span, .total, .total strong,
+.summary-line, .summary-line span, .box label,
+.box h2, .delivery-note, .checkout-total,
+.checkout-total-line, .checkout-total-line span,
+.checkout-total-line strong {
+  color: var(--shop-text) !important;
+}
+header div, .description, .delivery-note {
+  color: var(--shop-muted) !important;
+}
+button, .controls button, #checkout, #send,
+#ordersButton, #showOrders, #continueShopping {
+  background: var(--shop-button) !important;
+  color: #ffffff !important;
+}
+button.secondary, .secondary {
+  background: #666666 !important;
+  color: #ffffff !important;
+}
+input, textarea, select, .box input, .box textarea, .box select {
+  background: #ffffff !important;
+  color: #222222 !important;
+  -webkit-text-fill-color: #222222 !important;
+  border-color: var(--shop-border) !important;
+  caret-color: #222222 !important;
+  color-scheme: light !important;
+}
+input::placeholder, textarea::placeholder {
+  color: #777777 !important;
+  -webkit-text-fill-color: #777777 !important;
+  opacity: 1;
+}
+.modal {
+  background: rgba(0,0,0,.58) !important;
+}
+.modal .box {
+  background: #ffffff !important;
+  color: #222222 !important;
+}
