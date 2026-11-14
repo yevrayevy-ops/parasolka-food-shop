@@ -74,3 +74,24 @@
 .checkout-total { margin-top:14px; padding:12px; border-radius:10px; background:var(--tg-theme-secondary-bg-color,#f4f4f5); }
 .checkout-total-line { display:flex; justify-content:space-between; gap:12px; margin:5px 0; }
 .checkout-grand-total { border-top:1px solid #aaa; padding-top:9px; margin-top:9px; font-size:1.08em; font-weight:700; }
+
+
+/* Mobile Telegram WebView: keep checkout fields reachable when the keyboard opens. */
+.modal {
+  align-items: flex-end;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.modal .box {
+  max-height: calc(100vh - 12px);
+  max-height: calc(100dvh - 12px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+}
+.modal input, .modal select, .modal textarea {
+  font-size: 16px;
+  min-height: 44px;
+}

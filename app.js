@@ -23,33 +23,7 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
-function getProductPhotoUrl(photo) {
-  const raw = String(photo ?? "").trim();
 
-  if (!raw) return "";
-
-  try {
-    const url = new URL(raw);
-
-    if (
-      url.hostname === "drive.google.com" ||
-      url.hostname === "www.drive.google.com"
-    ) {
-      const fileId =
-        url.pathname.match(/\/file\/d\/([a-zA-Z0-9_-]+)/)?.[1] ||
-        url.pathname.match(/\/d\/([a-zA-Z0-9_-]+)/)?.[1] ||
-        url.searchParams.get("id");
-
-      if (fileId) {
-        return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(fileId)}`;
-      }
-    }
-  } catch (error) {
-    // Оставляем исходную ссылку, если это не абсолютный URL.
-  }
-
-  return raw;
-}
 function getTelegramUser() {
   return tg?.initDataUnsafe?.user || null;
 }
@@ -320,25 +294,30 @@ function render() {
             const q =
               cart[p.id] || 0;
 
-    const photo =
-  p.photo
-    ? `
-      <img
-        src="${escapeHtml(p.photo)}"
-        alt=""
-        class="product-photo"
-      >
-    `
-    : "";
-  
-const description =
-  p.description
-    ? `
-      <div class="description">
-        ${escapeHtml(p.description)}
-      </div>
-    `
-    : "";
+            const photo =
+              p.photo
+                ? `
+                  <img
+                    src="${escapeHtml(
+                      p.photo
+                    )}"
+                    alt=""
+                    class="product-photo"
+                  >
+                `
+                : "";
+
+            const description =
+              p.description
+                ? `
+                  <div class="description">
+                    ${escapeHtml(
+                      p.description
+                    )}
+                  </div>
+                `
+                : "";
+
             const productType =
               isInStockProduct(p)
                 ? `
@@ -362,9 +341,7 @@ const description =
                       font-weight:600;
                     "
                   >
-                  📦 Попереднє замовлення · знижка 10%
-<br>
-Доставка протягом максимум 14 робочих днів
+                    📦 Попереднє замовлення · знижка 10%
                   </div>
                 `;
 
@@ -737,9 +714,7 @@ function renderCart() {
               margin-bottom:8px;
             "
           >
-           Потрібно замовляти заздалегідь · знижка 10%
-<br>
-Доставка протягом максимум 14 робочих днів
+            Потрібно замовляти заздалегідь · знижка 10%
           </div>
       `;
 
@@ -1388,19 +1363,7 @@ function renderOrders(
               </div>
 
               ${itemsHtml}
-${(() => {
-  const isDelivery = order.deliveryMethod === "delivery";
-  return `
-    <div style="margin-top:12px;padding:10px 12px;background:#f7f8fa;border-radius:10px;line-height:1.6;">
-      <div><b>Спосіб отримання:</b> ${isDelivery ? "Доставка" : "Самовивіз"}</div>
-      ${isDelivery ? `
-        <div><b>Район:</b> ${escapeHtml(order.district || "—")}</div>
-        <div><b>Адреса доставки:</b> ${escapeHtml(order.address || "—")}</div>
-        <div><b>Вартість доставки:</b> ${money(order.deliveryFee || 2000)}</div>
-      ` : ""}
-    </div>
-  `;
-})()}
+
               <div
                 style="
                   margin-top:12px;
@@ -1641,20 +1604,11 @@ function updateCheckoutDeliveryUI() {
   deliveryAddressInput.required = isDelivery;
   const calculation = getCartCalculation();
   const finalTotal = calculation.total + (isDelivery ? DELIVERY_FEE : 0);
-  const preorderNotice =
-  calculation.preorderItems.length
-    ? `<div style="margin-top:10px;padding:10px;background:#fffdf2;border-radius:8px;color:#806000;font-size:13px;">
-         📦 Попереднє замовлення: знижка 10%.
-         Доставка протягом максимум 14 робочих днів.
-       </div>`
-    : "";
   checkoutTotal.innerHTML = `
     <div class="checkout-total-line"><span>Товари з урахуванням знижки:</span><strong>${money(calculation.total)}</strong></div>
     <div class="checkout-total-line"><span>Доставка:</span><strong>${isDelivery ? money(DELIVERY_FEE) : "0 Ft"}</strong></div>
     <div class="checkout-total-line checkout-grand-total"><span>До сплати:</span><strong>${money(finalTotal)}</strong></div>
-   ${preorderNotice}
-  `; 
- 
+  `;
 }
 
 fulfillmentSelect.addEventListener("change", updateCheckoutDeliveryUI);
