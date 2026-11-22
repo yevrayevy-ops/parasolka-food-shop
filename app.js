@@ -241,12 +241,9 @@ function render() {
       details.dataset.category =
         cat;
 
-      details.open =
-        openCategories.has(cat) ||
-        (
-          openCategories.size === 0 &&
-          index === 0
-        );
+      // При первом открытии магазина все основные категории свернуты.
+      // Уже открытые пользователем категории сохраняются при перерисовке.
+      details.open = openCategories.has(cat);
 
       const summary =
         document.createElement(
@@ -321,7 +318,7 @@ function render() {
           const subDetails = document.createElement("details");
           subDetails.className = "stock-subcategory";
           subDetails.dataset.subcategory = subcategory;
-          subDetails.open = subgroups.size === 1 || subIndex === 0;
+          subDetails.open = false;
 
           const subSummary = document.createElement("summary");
           subSummary.textContent = "🗂 " + subcategory;
