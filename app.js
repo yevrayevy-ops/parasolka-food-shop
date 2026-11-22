@@ -273,151 +273,69 @@ function render() {
       productsWrap.className =
         "category-products";
 
-      products
-        .filter(
-          p =>
-            (
-              p.category ||
-              "Інше"
-            ) === cat
-        )
-        .forEach(
-          p => {
-            const d =
-              document.createElement(
-                "div"
-              );
+      const categoryProducts = products.filter(
+        p => (p.category || "Інше") === cat
+      );
 
-            d.className =
-              "product";
+      const appendProduct = (target, p) => {
+        const d = document.createElement("div");
+        d.className = "product";
+        const q = cart[p.id] || 0;
+        const photo = p.photo ? `
+          <img src="${escapeHtml(p.photo)}" alt="" class="product-photo">
+        ` : "";
+        const description = p.description ? `
+          <div class="description">${escapeHtml(p.description)}</div>
+        ` : "";
+        const productType = isInStockProduct(p) ? `
+          <div class="product-type stock-type">🟢 Можна забрати зараз</div>
+        ` : `
+          <div class="product-type preorder-type">📦 Попереднє замовлення · знижка 10%</div>
+        `;
 
-            const q =
-              cart[p.id] || 0;
+        d.innerHTML = `
+          ${photo}
+          <h3>${escapeHtml(p.name)}</h3>
+          ${description}
+          ${productType}
+          <div class="price">${money(p.price)}${!p.available ? " — немає в наявності" : ""}</div>
+          <div class="controls">
+            <button ${!p.available ? "disabled" : ""} onclick="change(${JSON.stringify(p.id)}, -1)">−</button>
+            <span class="qty">${q}</span>
+            <button ${!p.available ? "disabled" : ""} onclick="change(${JSON.stringify(p.id)}, 1)">+</button>
+          </div>
+        `;
+        target.appendChild(d);
+      };
 
-            const photo =
-              p.photo
-                ? `
-                  <img
-                    src="${escapeHtml(
-                      p.photo
-                    )}"
-                    alt=""
-                    class="product-photo"
-                  >
-                `
-                : "";
+      if (cat === IN_STOCK_CATEGORY) {
+        // Внутри общего раздела наличия показываем подкатегории.
+        const subgroups = new Map();
+        categoryProducts.forEach(p => {
+          const subcategory = String(p.subcategory || "").trim() || "Інше";
+          if (!subgroups.has(subcategory)) subgroups.set(subcategory, []);
+          subgroups.get(subcategory).push(p);
+        });
 
-            const description =
-              p.description
-                ? `
-                  <div class="description">
-                    ${escapeHtml(
-                      p.description
-                    )}
-                  </div>
-                `
-                : "";
+        [...subgroups.entries()].forEach(([subcategory, items], subIndex) => {
+          const subDetails = document.createElement("details");
+          subDetails.className = "stock-subcategory";
+          subDetails.dataset.subcategory = subcategory;
+          subDetails.open = subgroups.size === 1 || subIndex === 0;
 
-            const productType =
-              isInStockProduct(p)
-                ? `
-                  <div
-                    style="
-                      margin:6px 0;
-                      color:#16803c;
-                      font-size:13px;
-                      font-weight:600;
-                    "
-                  >
-                    🟢 Можна забрати зараз
-                  </div>
-                `
-                : `
-                  <div
-                    style="
-                      margin:6px 0;
-                      color:#8a6500;
-                      font-size:13px;
-                      font-weight:600;
-                    "
-                  >
-                    📦 Попереднє замовлення · знижка 10%
-                  </div>
-                `;
+          const subSummary = document.createElement("summary");
+          subSummary.textContent = "🗂 " + subcategory;
+          subDetails.appendChild(subSummary);
 
-            d.innerHTML = `
-              ${photo}
-
-              <h3>
-                ${escapeHtml(
-                  p.name
-                )}
-              </h3>
-
-              ${description}
-
-              ${productType}
-
-              <div class="price">
-                ${money(
-                  p.price
-                )}
-
-                ${
-                  !p.available
-                    ? " — немає в наявності"
-                    : ""
-                }
-              </div>
-
-              <div class="controls">
-
-                <button
-                  ${
-                    !p.available
-                      ? "disabled"
-                      : ""
-                  }
-
-                  onclick="change(
-                    ${JSON.stringify(
-                      p.id
-                    )},
-                    -1
-                  )"
-                >
-                  −
-                </button>
-
-                <span class="qty">
-                  ${q}
-                </span>
-
-                <button
-                  ${
-                    !p.available
-                      ? "disabled"
-                      : ""
-                  }
-
-                  onclick="change(
-                    ${JSON.stringify(
-                      p.id
-                    )},
-                    1
-                  )"
-                >
-                  +
-                </button>
-
-              </div>
-            `;
-
-            productsWrap.appendChild(
-              d
-            );
-          }
-        );
+          const subProducts = document.createElement("div");
+          subProducts.className = "category-products";
+          items.forEach(p => appendProduct(subProducts, p));
+          subDetails.appendChild(subProducts);
+          productsWrap.appendChild(subDetails);
+        });
+      } else {
+        categoryProducts.forEach(p => appendProduct(productsWrap, p));
+      }
 
       details.appendChild(
         productsWrap
