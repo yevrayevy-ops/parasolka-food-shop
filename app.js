@@ -176,9 +176,18 @@ function render() {
       "catalog"
     );
 
+  // Сохраняем положение страницы, чтобы при изменении количества
+  // товара каталог не прокручивался вниз к корзине.
+  const savedScrollY = window.scrollY;
+
   /*
-   * Запоминаем открытые категории.
+   * Запоминаем открытые категории и подкатегории.
    */
+
+  const openSubcategories = new Set(
+    [...catalog.querySelectorAll("details.stock-subcategory[open]")]
+      .map(d => d.dataset.subcategory)
+  );
 
   const openCategories =
     new Set(
@@ -318,7 +327,7 @@ function render() {
           const subDetails = document.createElement("details");
           subDetails.className = "stock-subcategory";
           subDetails.dataset.subcategory = subcategory;
-          subDetails.open = false;
+          subDetails.open = openSubcategories.has(subcategory);
 
           const subSummary = document.createElement("summary");
           subSummary.textContent = "🗂 " + subcategory;
@@ -345,6 +354,9 @@ function render() {
   );
 
   renderCart();
+
+  // Возвращаем пользователя на то же место после перерисовки каталога.
+  requestAnimationFrame(() => window.scrollTo(0, savedScrollY));
 }
 
 /* =========================================================
